@@ -1,0 +1,81 @@
+name: Deploy to Aliyun ECS
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:  # 支持手动触发
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. 拉取代码
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. 设置 JDK 17（打包后端）
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      # 3. 设置 Node.js 20（打包前端）
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 4. 打包后端 Spring Boot
+      - name: Build Backend
+        run: |
+          cd theking_backend
+          chmod +x mvnw
+          ./mvnw clean package -DskipTests
+
+      # 5. 打包前端 Vue
+      - name: Build Frontend
+        run: |
+          cd theking-fitness-vue
+          npm ci
+          npm run build-only
+
+      # 6. 上传后端 jar 到阿里云
+      - name: Deploy Backend JAR
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: ${{ secrets.PORT }}
+          source: "theking_backend/target/theking-backend-0.0.1-SNAPSHOT.jar"
+          target: "/opt/app/"
+          strip_components: 2  # 去掉 theking_backend/target/ 前缀
+          overwrite: true
+
+      # 7. 上传前端 dist 到阿里云
+      - name: Deploy Frontend
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: ${{ secrets.PORT }}
+          source: "theking-fitness-vue/dist/*"
+          target: "/usr/share/nginx/html/"
+          strip_components: 2  # 去掉 theking-fitness-vue/dist/ 前缀
+          overwrite: true
+
+      # 8. 重启后端服务
+      - name: Restart Backend Service
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: ${{ secrets.PORT }}
+          script: |
+            systemctl restart theking
+            systemctl status theking --no-pager
+            echo "Backend restarted successfully!"

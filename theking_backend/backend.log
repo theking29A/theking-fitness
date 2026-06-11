@@ -1,0 +1,120 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] --------------------< com.theking:theking-backend >---------------------
+[INFO] Building theking-backend 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.5.14:run (default-cli) > test-compile @ theking-backend >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ theking-backend ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ theking-backend ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ theking-backend ---
+[INFO] skip non existing resourceDirectory E:\练习\个人网站练习\theking_backend\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ theking-backend ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 1 source file with javac [debug parameters release 17] to target\test-classes
+[INFO] 
+[INFO] <<< spring-boot:3.5.14:run (default-cli) < test-compile @ theking-backend <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.5.14:run (default-cli) @ theking-backend ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.14)
+
+2026-06-10T13:44:05.262+08:00  INFO 41860 --- [  restartedMain] c.t.t.ThekingBackendApplication          : Starting ThekingBackendApplication using Java 17.0.19 with PID 41860 (E:\练习\个人网站练习\theking_backend\target\classes started by theking in E:\练习\个人网站练习\theking_backend)
+2026-06-10T13:44:05.265+08:00  INFO 41860 --- [  restartedMain] c.t.t.ThekingBackendApplication          : No active profile set, falling back to 1 default profile: "default"
+2026-06-10T13:44:05.290+08:00  INFO 41860 --- [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-06-10T13:44:05.290+08:00  INFO 41860 --- [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-06-10T13:44:05.641+08:00  INFO 41860 --- [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-06-10T13:44:05.675+08:00  INFO 41860 --- [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 29 ms. Found 1 JPA repository interface.
+2026-06-10T13:44:06.002+08:00  INFO 41860 --- [  restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8081 (http)
+2026-06-10T13:44:06.013+08:00  INFO 41860 --- [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-06-10T13:44:06.013+08:00  INFO 41860 --- [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.54]
+2026-06-10T13:44:06.050+08:00  INFO 41860 --- [  restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-06-10T13:44:06.052+08:00  INFO 41860 --- [  restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 760 ms
+2026-06-10T13:44:06.147+08:00  INFO 41860 --- [  restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-06-10T13:44:06.171+08:00  INFO 41860 --- [  restartedMain] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.49.Final
+2026-06-10T13:44:06.189+08:00  INFO 41860 --- [  restartedMain] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-06-10T13:44:06.329+08:00  INFO 41860 --- [  restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-06-10T13:44:06.344+08:00  INFO 41860 --- [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-06-10T13:44:06.446+08:00  INFO 41860 --- [  restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@30ba9db2
+2026-06-10T13:44:06.447+08:00  INFO 41860 --- [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-06-10T13:44:06.491+08:00  INFO 41860 --- [  restartedMain] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 8.0.39
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-06-10T13:44:06.892+08:00  INFO 41860 --- [  restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-06-10T13:44:06.918+08:00  INFO 41860 --- [  restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-06-10T13:44:07.094+08:00  WARN 41860 --- [  restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-06-10T13:44:07.307+08:00  INFO 41860 --- [  restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2026-06-10T13:44:07.330+08:00  INFO 41860 --- [  restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8081 (http) with context path '/'
+2026-06-10T13:44:07.336+08:00  INFO 41860 --- [  restartedMain] c.t.t.ThekingBackendApplication          : Started ThekingBackendApplication in 2.304 seconds (process running for 2.571)
+2026-06-10T13:44:34.929+08:00  INFO 41860 --- [nio-8081-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-06-10T13:44:34.929+08:00  INFO 41860 --- [nio-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-06-10T13:44:34.930+08:00  INFO 41860 --- [nio-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+【图形验证码】captchaId=7b9c0df3-7059-4dd5-8d09-8d1fe392dcbe, 验证码=GXF2
+Hibernate: select u1_0.id from users u1_0 where u1_0.account=? limit ?
+Hibernate: select u1_0.id from users u1_0 where u1_0.email=? limit ?
+Hibernate: insert into users (account,email,nickname,password) values (?,?,?,?)
+2026-06-10T13:45:05.893+08:00  WARN 41860 --- [nio-8081-exec-4] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.http.converter.HttpMessageNotReadableException: JSON parse error: Unexpected character ('a' (code 97)): was expecting double-quote to start field name]
+收到登录请求: 账号=testuser
+Hibernate: select u1_0.id,u1_0.account,u1_0.email,u1_0.nickname,u1_0.password from users u1_0 where u1_0.account=?
+【模拟发送验证码】类型=forgot, 账号=testuser, 邮箱=test@test.com, 验证码=024461
+Hibernate: select u1_0.id,u1_0.account,u1_0.email,u1_0.nickname,u1_0.password from users u1_0 where u1_0.account=?
+Hibernate: update users set account=?,email=?,nickname=?,password=? where id=?
+收到登录请求: 账号=testuser
+Hibernate: select u1_0.id,u1_0.account,u1_0.email,u1_0.nickname,u1_0.password from users u1_0 where u1_0.account=?
+【图形验证码】captchaId=016d243b-f1c6-4c43-ba3f-c0eba5531d06, 验证码=FBCB
+Hibernate: select u1_0.id from users u1_0 where u1_0.account=? limit ?
+Hibernate: select u1_0.id from users u1_0 where u1_0.email=? limit ?
+Hibernate: insert into users (account,email,nickname,password) values (?,?,?,?)
+收到登录请求: 账号=123456
+Hibernate: select u1_0.id,u1_0.account,u1_0.email,u1_0.nickname,u1_0.password from users u1_0 where u1_0.account=?
+【图形验证码】captchaId=0916d3b8-e93a-4e56-acb7-32e1961825ec, 验证码=QVKE
+【图形验证码】captchaId=0ffd3c66-0c53-4be2-aa28-ee5a5730ca03, 验证码=QFSW
+收到登录请求: 账号=123456
+Hibernate: select u1_0.id,u1_0.account,u1_0.email,u1_0.nickname,u1_0.password from users u1_0 where u1_0.account=?
+【图形验证码】captchaId=ab394771-f88a-44f7-ab80-cae13738f35f, 验证码=KEDV
+【图形验证码】captchaId=a405c458-2f64-412a-b4a9-0d43fa0d925b, 验证码=P23D
+【图形验证码】captchaId=d67cfd81-3665-4ab2-b5a7-ec863dc3f36f, 验证码=RNGU
+收到登录请求: 账号=theking
+Hibernate: select u1_0.id,u1_0.account,u1_0.email,u1_0.nickname,u1_0.password from users u1_0 where u1_0.account=?
+【图形验证码】captchaId=d620a85f-6b3c-417c-b49a-dbf19c1ffa0b, 验证码=7JCD
+收到登录请求: 账号=123456
+Hibernate: select u1_0.id,u1_0.account,u1_0.email,u1_0.nickname,u1_0.password from users u1_0 where u1_0.account=?
+【图形验证码】captchaId=3208b248-f4ba-4dc5-9f0f-081502188154, 验证码=VCKA
+【图形验证码】captchaId=4fcb1221-b0a7-47e8-a2bf-89a2d00a3dee, 验证码=7XHD
+【图形验证码】captchaId=f6844a8c-7157-48c9-9276-115b28495e7c, 验证码=AXT5
+【图形验证码】captchaId=8964218c-eff5-485a-a279-be419595eef9, 验证码=YYWH
+收到登录请求: 账号=theking
+Hibernate: select u1_0.id,u1_0.account,u1_0.email,u1_0.nickname,u1_0.password from users u1_0 where u1_0.account=?
+【图形验证码】captchaId=54d7dee9-6ef6-4a6b-9a0e-89332a007a66, 验证码=ZQZ5
+【图形验证码】captchaId=e6b96e65-42f1-44cb-8b52-a0095d51f3db, 验证码=V95X
+收到登录请求: 账号=123456
+Hibernate: select u1_0.id,u1_0.account,u1_0.email,u1_0.nickname,u1_0.password from users u1_0 where u1_0.account=?
+【图形验证码】captchaId=23ca774a-df4e-4a01-a7c9-63029244d1a4, 验证码=G6BX
+【图形验证码】captchaId=ba3a8b14-2889-4165-a66d-8fc2ed302ecf, 验证码=UFP4
+【图形验证码】captchaId=6ef2581d-b07e-4c84-b584-fcc2d6506bdc, 验证码=G7AX
+收到登录请求: 账号=theking
+Hibernate: select u1_0.id,u1_0.account,u1_0.email,u1_0.nickname,u1_0.password from users u1_0 where u1_0.account=?
+【图形验证码】captchaId=b0a41699-de1d-40fa-ad88-81b7340496f9, 验证码=HUY8
+【模拟发送验证码】类型=forgot, 账号=123456, 邮箱=3134537596@qq.com, 验证码=078002

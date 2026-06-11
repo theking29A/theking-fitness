@@ -1,0 +1,81 @@
+<template>
+  <div class="entrance-container">
+    <div id="spline-desktop" class="bg-layer">
+      <spline-viewer url="https://prod.spline.design/k9qGy-LVSQIB9Fnz/scene.splinecode"></spline-viewer>
+    </div>
+
+    <div id="mobile-bg" class="bg-layer">
+        <div class="mobile-ring"></div>
+        <div class="mobile-ring"></div>
+        <div class="mobile-ring"></div>
+        <div class="mobile-particle" style="top:20%;left:20%;animation-delay:0s;"></div>
+        <div class="mobile-particle" style="top:30%;left:70%;animation-delay:0.5s;"></div>
+        <div class="mobile-particle" style="top:60%;left:30%;animation-delay:1s;"></div>
+        <div class="mobile-particle" style="top:70%;left:80%;animation-delay:1.5s;"></div>
+        <div class="mobile-particle" style="top:40%;left:50%;animation-delay:2s;"></div>
+    </div>
+
+    <div class="top-hint">THEKING FITNESS</div>
+
+    <a href="#" @click.prevent="goToHome" class="bulb-btn">
+        <div class="bulb-glass"></div>
+        <div class="bulb-base"></div>
+    </a>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+const goToHome = () => {
+  router.push('/home')
+}
+
+onMounted(() => {
+  const script = document.createElement('script')
+  script.type = 'module'
+  script.src = 'https://unpkg.com/@splinetool/viewer@1.12.90/build/spline-viewer.js'
+  document.head.appendChild(script)
+})
+</script>
+
+<style scoped>
+.entrance-container { width: 100vw; height: 100vh; overflow: hidden; position: relative; background: #000; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft YaHei", sans-serif; }
+.bg-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+spline-viewer { width: 100%; height: 100%; display: block; }
+
+/* ========== 手机端：静态背景 ========== */
+#mobile-bg { display: none; background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0f0f23 100%); }
+.mobile-ring { position: absolute; border-radius: 50%; border: 1px solid rgba(255, 69, 0, 0.15); }
+.mobile-ring:nth-child(1) { width: 300px; height: 300px; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+.mobile-ring:nth-child(2) { width: 200px; height: 200px; top: 50%; left: 50%; transform: translate(-50%, -50%); border-color: rgba(255, 152, 0, 0.2); }
+.mobile-ring:nth-child(3) { width: 100px; height: 100px; top: 50%; left: 50%; transform: translate(-50%, -50%); border-color: rgba(255, 235, 59, 0.25); }
+.mobile-particle { position: absolute; width: 4px; height: 4px; background: rgba(255, 69, 0, 0.6); border-radius: 50%; animation: float-particle 3s ease-in-out infinite; }
+@keyframes float-particle { 0%, 100% { transform: translateY(0) scale(1); opacity: 0.6; } 50% { transform: translateY(-20px) scale(1.5); opacity: 1; } }
+
+/* ========== 顶部文字 ========== */
+.top-hint { position: fixed; top: 40px; left: 50%; transform: translateX(-50%); z-index: 10; color: rgba(255,255,255,0.6); font-size: 14px; letter-spacing: 3px; text-transform: uppercase; }
+
+/* ========== 灯泡按钮 ========== */
+.bulb-btn { position: fixed; top: 18%; left: 50%; transform: translateX(-50%); z-index: 10; width: 60px; height: 90px; cursor: pointer; text-decoration: none; display: block; animation: breathe 3s ease-in-out infinite; transition: all 0.3s ease; }
+.bulb-btn:hover { animation: none; transform: translateX(-50%) scale(1.1); }
+.bulb-glass { width: 60px; height: 60px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff 0%, #ffeb3b 30%, #ff9800 70%, #e65100 100%); box-shadow: 0 0 20px rgba(255, 235, 59, 0.6), 0 0 40px rgba(255, 152, 0, 0.4), inset -5px -5px 15px rgba(0,0,0,0.2), inset 5px 5px 15px rgba(255,255,255,0.3); position: relative; transition: all 0.3s ease; }
+.bulb-btn:hover .bulb-glass { box-shadow: 0 0 30px rgba(255, 235, 59, 0.9), 0 0 60px rgba(255, 152, 0, 0.6), 0 0 100px rgba(255, 152, 0, 0.3), inset -5px -5px 15px rgba(0,0,0,0.2), inset 5px 5px 15px rgba(255,255,255,0.4); }
+.bulb-base { width: 28px; height: 8px; background: linear-gradient(to bottom, #888, #555); border-radius: 2px; margin: 2px auto 0; position: relative; }
+.bulb-base::before { content: ''; position: absolute; top: -4px; left: 50%; transform: translateX(-50%); width: 22px; height: 6px; background: linear-gradient(to bottom, #aaa, #777); border-radius: 2px; }
+.bulb-base::after { content: ''; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); width: 20px; height: 6px; background: linear-gradient(to bottom, #666, #444); border-radius: 0 0 4px 4px; }
+.bulb-glass::before { content: ''; position: absolute; top: 12px; left: 15px; width: 18px; height: 12px; background: rgba(255,255,255,0.6); border-radius: 50%; transform: rotate(-30deg); }
+@keyframes breathe { 0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.85; } 50% { transform: translateX(-50%) scale(1.08); opacity: 1; } }
+
+/* ========== 手机端适配 ========== */
+@media (max-width: 768px) {
+    #spline-desktop { display: none !important; }
+    #mobile-bg { display: block !important; }
+    .top-hint { font-size: 12px; top: 30px; }
+    .bulb-btn { top: 22%; transform: translateX(-50%) scale(0.9); }
+    @keyframes breathe { 0%, 100% { transform: translateX(-50%) scale(0.9); opacity: 0.85; } 50% { transform: translateX(-50%) scale(0.98); opacity: 1; } }
+}
+</style>
