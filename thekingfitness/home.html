@@ -1,0 +1,1993 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TheKing - 健身饮食全能助手</title>
+    <style>
+        /* ========== 基础重置 & 变量 ========== */
+        :root {
+            --primary: #007ACC;
+            --primary-dark: #005fa3;
+            --accent: #ff4500;
+            --bg-dark: #121212;
+            --card-bg: #1e1e1e;
+            --text-main: #333;
+            --text-light: #e0e0e0;
+            --text-sub: #a0a0a0;
+            --shadow-soft: 0 10px 30px -5px rgba(0,0,0,0.08);
+            --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft YaHei", sans-serif;
+            background: #f0f2f5;
+            color: var(--text-main);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* ========== 汉堡菜单按钮 ========== */
+        #menu-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            width: 44px;
+            height: 44px;
+            background: rgba(255,255,255,0.95);
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            transition: var(--transition);
+        }
+
+        #menu-btn span {
+            display: block;
+            width: 22px;
+            height: 2.5px;
+            background: var(--text-main);
+            border-radius: 2px;
+            transition: var(--transition);
+        }
+
+        #menu-btn.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+        #menu-btn.active span:nth-child(2) { opacity: 0; }
+        #menu-btn.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+        /* ========== 侧边菜单 ========== */
+        #side-menu {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100vh;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            z-index: 999;
+            transition: left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            padding: 80px 0 30px;
+            overflow-y: auto;
+        }
+
+        #side-menu.open { left: 0; }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 16px 25px;
+            color: var(--text-light);
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background: rgba(255,255,255,0.05);
+            border-left-color: var(--accent);
+            color: #fff;
+        }
+
+        .menu-item .icon {
+            width: 28px;
+            height: 28px;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .menu-divider {
+            height: 1px;
+            background: rgba(255,255,255,0.1);
+            margin: 15px 20px;
+        }
+
+        .menu-header {
+            padding: 0 25px 20px;
+            color: var(--text-sub);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* ========== 遮罩层 ========== */
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(3px);
+            z-index: 998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        #overlay.show { opacity: 1; visibility: visible; }
+
+        /* ========== 页面内容区 ========== */
+        .page {
+            display: none;
+            min-height: 100vh;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .page.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ========== 首页样式（完全保留你的设计） ========== */
+        #home-page .main-wrapper {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        #home-page section {
+            padding: 0;
+            margin-bottom: 40px;
+            border-radius: 16px;
+        }
+
+        #home-page #header {
+            background: linear-gradient(135deg, #007ACC 0%, #005fa3 100%);
+            color: white;
+            text-align: center;
+            box-shadow: var(--shadow-soft);
+            padding: 40px 20px;
+            border-radius: 16px;
+            margin-top: 60px;
+        }
+
+        #home-page #header h1 { font-size: 2.8em; margin-bottom: 12px; font-weight: 700; }
+        #home-page #header p { font-size: 1.1em; opacity: 0.9; }
+
+        #home-page #content-card {
+            display: flex;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: var(--shadow-soft);
+            overflow: hidden;
+            min-height: 420px;
+            transition: var(--transition);
+        }
+
+        #home-page #content-card:hover {
+            box-shadow: 0 20px 40px -5px rgba(0,0,0,0.12);
+            transform: translateY(-3px);
+        }
+
+        #home-page #card-text {
+            flex: 2;
+            padding: 50px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border-right: 1px solid #f0f0f0;
+        }
+
+        #home-page #card-text h2 {
+            font-size: 1.8em;
+            margin-bottom: 25px;
+            position: relative;
+            display: inline-block;
+        }
+
+        #home-page #card-text h2::after {
+            content: '';
+            position: absolute;
+            bottom: -8px; left: 0;
+            width: 60px; height: 4px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+
+        #home-page #card-text p {
+            text-align: justify;
+            margin-bottom: 18px;
+            color: var(--text-sub);
+            font-size: 1.05em;
+            line-height: 1.8;
+        }
+
+        #home-page #card-text strong { color: var(--primary); font-weight: 600; }
+        #home-page .bullet-line { height: 1px; background: linear-gradient(to right, #e5e7eb, transparent); margin: 20px 0; }
+        #home-page #card-text a { color: var(--primary); text-decoration: none; font-weight: 600; }
+        #home-page #card-text a:hover { text-decoration: underline; }
+
+        #home-page #card-image {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: #1a1a1a;
+            min-height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #home-page #card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            max-width: 100%;
+            max-height: 100%;
+            display: block;
+            transition: transform 0.8s ease;
+        }
+
+        #home-page #content-card:hover #card-image img { transform: scale(1.05); }
+
+        #home-page #card-image h3 {
+            position: absolute;
+            top: 24px; left: 24px;
+            color: #fff;
+            font-size: 1.4em;
+            font-weight: 700;
+            z-index: 2;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(12px);
+            padding: 10px 18px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.25);
+            pointer-events: none;
+        }
+
+        #home-page #footer-area {
+            background: #fff;
+            text-align: center;
+            border: 2px dashed #e5e7eb;
+            color: #9ca3af;
+            padding: 60px 20px;
+            border-radius: 16px;
+        }
+
+        /* ========== 健身页样式（深色主题） ========== */
+        #gym-page {
+            background: var(--bg-dark);
+            color: var(--text-light);
+            padding-top: 70px;
+        }
+
+        .gym-nav {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+            background: var(--bg-dark);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        .gym-nav-btn {
+            flex: 1;
+            margin: 0 5px;
+            padding: 12px 0;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #333;
+            color: var(--text-sub);
+        }
+
+        .gym-nav-btn.active {
+            background: var(--accent);
+            color: #fff;
+            transform: scale(1.05);
+        }
+
+        .gym-section {
+            display: none;
+            padding: 20px;
+            animation: fadeIn 0.4s;
+        }
+
+        .gym-section.active { display: block; }
+
+        .workout-block {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }
+
+        .block-title {
+            color: var(--accent);
+            font-size: 1.2rem;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+            margin-top: 0;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .exercise-list { list-style: none; padding: 0; margin: 0; }
+
+        .exercise-item {
+            padding: 12px 0;
+            border-bottom: 1px dashed #333;
+            font-size: 1rem;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: color 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .exercise-item:last-child { border-bottom: none; }
+        .exercise-item:hover { color: var(--accent); }
+
+        .exercise-item .action-name {
+            flex: 1;
+            cursor: pointer;
+            transition: color 0.2s;
+            user-select: none;
+        }
+
+        .exercise-item .action-name:hover {
+            color: #ff6b35;
+        }
+
+        .exercise-item .action-name::after {
+            content: " \u25B6";
+            font-size: 10px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            color: #ff6b35;
+        }
+
+        .exercise-item:hover .action-name::after {
+            opacity: 1;
+        }
+
+        .exercise-item .weight-input {
+            background: #333;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 6px;
+            width: 80px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .exercise-item.completed {
+            text-decoration: line-through;
+            color: #555 !important;
+            opacity: 0.6;
+        }
+
+        .note {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        /* ========== 动作演示弹窗 ========== */
+        .action-modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100vh;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .action-modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .action-modal {
+            background: #1e1e2e;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 85vh;
+            overflow-y: auto;
+            transform: translateY(30px) scale(0.95);
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+        }
+
+        .action-modal-overlay.show .action-modal {
+            transform: translateY(0) scale(1);
+        }
+
+        .action-modal-header {
+            padding: 24px 24px 16px;
+            border-bottom: 1px solid #333;
+            position: relative;
+        }
+
+        .action-modal-header h3 {
+            font-size: 20px;
+            color: #fff;
+            margin: 0;
+            padding-right: 30px;
+        }
+
+        .action-modal-header .target-muscle {
+            font-size: 13px;
+            color: #ff6b35;
+            margin-top: 6px;
+            font-weight: 600;
+        }
+
+        .action-modal-close {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            width: 32px;
+            height: 32px;
+            background: #333;
+            border: none;
+            border-radius: 50%;
+            color: #aaa;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .action-modal-close:hover {
+            background: #ff4500;
+            color: #fff;
+        }
+
+        .action-modal-body {
+            padding: 20px 24px;
+        }
+
+        .action-video-container {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #0a0a0a;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .action-video-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .action-video-placeholder {
+            text-align: center;
+            color: #666;
+        }
+
+        .action-video-placeholder .placeholder-icon {
+            font-size: 48px;
+            margin-bottom: 8px;
+            opacity: 0.3;
+        }
+
+        .action-steps {
+            margin-bottom: 20px;
+        }
+
+        .action-steps h4,
+        .action-tips h4,
+        .action-mistakes h4 {
+            font-size: 14px;
+            color: #ff6b35;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .action-steps ol {
+            padding-left: 18px;
+            margin: 0;
+        }
+
+        .action-steps ol li {
+            color: #ccc;
+            font-size: 14px;
+            line-height: 1.7;
+            margin-bottom: 6px;
+        }
+
+        .action-tips ul,
+        .action-mistakes ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .action-tips ul li,
+        .action-mistakes ul li {
+            color: #ccc;
+            font-size: 14px;
+            line-height: 1.7;
+            padding-left: 18px;
+            position: relative;
+            margin-bottom: 4px;
+        }
+
+        .action-tips ul li::before {
+            content: "\2713";
+            color: #4CAF50;
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+
+        .action-mistakes ul li::before {
+            content: "\2717";
+            color: #f44336;
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+
+        .action-modal-body .section-divider {
+            height: 1px;
+            background: #333;
+            margin: 16px 0;
+        }
+
+        /* ========== 训练数据卡片 ========== */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #333;
+        }
+
+        .stat-card .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .stat-card .stat-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--accent);
+            text-align: center;
+            font-family: inherit;
+            padding: 0;
+            outline: none;
+            border-bottom: 2px dashed #444;
+            transition: border-color 0.3s;
+        }
+
+        .stat-card .stat-input:focus {
+            border-bottom-color: var(--accent);
+        }
+
+        .stat-card .stat-input::placeholder {
+            color: #555;
+        }
+
+        .stat-card .stat-label {
+            font-size: 12px;
+            color: var(--text-sub);
+            margin-top: 8px;
+        }
+
+
+        /* ========== 饮食页样式 ========== */
+        #diet-page {
+            background: #f4f7f6;
+            color: var(--text-main);
+            padding-top: 70px;
+            min-height: 100vh;
+        }
+
+        .diet-nav {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 15px;
+            background: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .diet-nav-btn {
+            background: none;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-sub);
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .diet-nav-btn.active {
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .diet-nav-btn.training.active { background: #4CAF50; }
+        .diet-nav-btn.rest.active { background: #2196F3; }
+
+        .diet-section {
+            display: none;
+            padding: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .diet-section.active { display: block; }
+
+        /* 饮食计划表格 */
+        .diet-table-wrapper {
+            background: #fff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+            margin-bottom: 20px;
+        }
+
+        .diet-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .diet-table thead th {
+            padding: 14px 12px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .diet-table thead tr {
+            background: #f8f9fa;
+            color: #555;
+        }
+
+        .diet-table tbody td {
+            padding: 14px 12px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: middle;
+            line-height: 1.5;
+        }
+
+        .diet-table tbody tr:last-child td { border-bottom: none; }
+
+        .diet-table tbody tr:hover { background: #f8faf8; }
+
+        .diet-table tbody tr.rest-row { background: #f0f7ff; }
+        .diet-table tbody tr.rest-row:hover { background: #e8f0fe; }
+
+        .diet-table tbody tr.aerobic-row { background: #fff8f0; }
+        .diet-table tbody tr.aerobic-row:hover { background: #fff3e0; }
+
+        /* 类型标签 */
+        .type-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .badge-leg { background: #e8f5e9; color: #2e7d32; }
+        .badge-chest { background: #e3f2fd; color: #1565c0; }
+        .badge-shoulder { background: #fff3e0; color: #e65100; }
+        .badge-rest { background: #eceff1; color: #546e7a; }
+        .badge-aerobic { background: #fce4ec; color: #c62828; }
+
+        /* 数据高亮 */
+        .data-highlight {
+            font-weight: 800;
+            font-size: 14px;
+        }
+
+        .data-cal { color: #e65100; }
+        .data-protein { color: #1565c0; }
+
+        /* 连字符号 */
+        .dash { color: #bbb; font-size: 18px; }
+
+        /* 休息日表格样式 */
+        .rest-table-wrapper {
+            background: #fff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+            margin-bottom: 20px;
+        }
+
+        .rest-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .rest-table thead th {
+            padding: 16px;
+            text-align: left;
+            background: #f0f7ff;
+            color: #1565c0;
+            font-weight: 700;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #bbdefb;
+        }
+
+        .rest-table tbody td {
+            padding: 16px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: top;
+            line-height: 1.6;
+        }
+
+        .rest-table tbody tr:last-child td { border-bottom: none; }
+        .rest-table tbody tr:hover { background: #f8fbff; }
+
+        .rest-table .section-label {
+            font-weight: 700;
+            color: #1565c0;
+            display: block;
+            margin-bottom: 4px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .rest-table .section-content {
+            color: #333;
+        }
+
+        .rest-table .macro-cell {
+            text-align: center;
+            font-weight: 700;
+        }
+
+        /* 提示卡片 */
+        .tip-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            border-left: 4px solid #FF9800;
+        }
+
+        .tip-card h3 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tip-card ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .tip-card ul li {
+            padding: 6px 0;
+            padding-left: 18px;
+            position: relative;
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .tip-card ul li::before {
+            content: "•";
+            color: #FF9800;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        /* ========== 手机适配 ========== */
+        @media (max-width: 768px) {
+            #home-page #header h1 { font-size: 2em; }
+            #home-page #content-card { flex-direction: column; min-height: auto; }
+            #home-page #card-text { flex: auto; width: 100%; padding: 30px 20px; border-right: none; border-bottom: 1px solid #f0f0f0; }
+            #home-page #card-image { flex: auto; width: 100%; min-height: 250px; }
+            #home-page #header { margin-top: 50px; }
+
+            .gym-nav-btn { font-size: 12px; padding: 10px 0; }
+            .stats-bar { grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 10px; }
+            .stat-card { padding: 10px; }
+            .stat-card .stat-value { font-size: 20px; }
+
+            .exercise-item { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .exercise-item .weight-input { width: 100%; }
+
+            .diet-table, .rest-table { font-size: 12px; }
+            .diet-table thead th,
+            .diet-table tbody td,
+            .rest-table thead th,
+            .rest-table tbody td { padding: 10px 8px; }
+
+            .type-badge { padding: 3px 8px; font-size: 11px; }
+        }
+
+        @media (max-width: 480px) {
+            .diet-table-wrapper, .rest-table-wrapper {
+                border-radius: 12px;
+                overflow-x: auto;
+            }
+            .diet-table { min-width: 700px; }
+            .rest-table { min-width: 500px; }
+        }
+
+        @media (max-width: 768px) {
+            #home-page #header h1 { font-size: 2em; }
+            #home-page #content-card { flex-direction: column; min-height: auto; }
+            #home-page #card-text { flex: auto; width: 100%; padding: 30px 20px; border-right: none; border-bottom: 1px solid #f0f0f0; }
+            #home-page #card-image { flex: auto; width: 100%; min-height: 250px; }
+            #home-page #header { margin-top: 50px; }
+
+            .gym-nav-btn { font-size: 12px; padding: 10px 0; }
+            .stats-bar { grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 10px; }
+            .stat-card { padding: 10px; }
+            .stat-card .stat-value { font-size: 20px; }
+
+            .exercise-item { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .exercise-item .weight-input { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ========== 汉堡菜单按钮 ========== -->
+    <button id="menu-btn" onclick="toggleMenu()">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- ========== 侧边菜单 ========== -->
+    <div id="side-menu">
+        <div class="menu-header">导航菜单</div>
+        <div class="menu-item active" onclick="showPage('home')">
+            <div class="icon">🏠</div>
+            <div>首页</div>
+        </div>
+        <div class="menu-item" onclick="showPage('gym')">
+            <div class="icon">💪</div>
+            <div>健身训练</div>
+        </div>
+        <div class="menu-item" onclick="showPage('diet')">
+            <div class="icon">🍱</div>
+            <div>饮食计划</div>
+        </div>
+        <div class="menu-divider"></div>
+        <div class="menu-header">数据统计</div>
+        <div class="menu-item" onclick="showPage('stats')">
+            <div class="icon">📊</div>
+            <div>训练记录</div>
+        </div>
+        <div class="menu-item" onclick="showPage('settings')">
+            <div class="icon">⚙️</div>
+            <div>设置</div>
+        </div>
+    </div>
+
+    <!-- ========== 遮罩层 ========== -->
+    <div id="overlay" onclick="toggleMenu()"></div>
+
+    <!-- ========== 首页 ========== -->
+    <div id="home-page" class="page active">
+        <div class="main-wrapper">
+            <section id="header">
+                <h1>欢迎来到我的网站</h1>
+                <p>黄金比例 · 完整展示 · 纯粹内容</p>
+            </section>
+
+            <section id="content-card">
+                <div id="card-text">
+                    <h2>最新公告</h2>
+                    <p>下面的三个板块是我主要发展的内容，有优质内容或者建议可以联系
+                        <strong>QQ邮箱</strong>3134537596@qq.com
+                    </p>
+                    <div class="bullet-line"></div>
+                    <p>1. <a href="#" onclick="showPage('gym')">健身训练</a>：个人的训练计划安排</p>
+                    <div class="bullet-line"></div>
+                    <p>2. <a href="#" onclick="showPage('diet')">健身饮食</a>：饮食搭配</p>
+                    <div class="bullet-line"></div>
+                    <p>3. <a href="#">考研达人</a>：初步设想是放一些我的错题和学习资源在里面</p>
+                </div>
+
+                <div id="card-image">
+                    <h3>品牌 Logo</h3>
+                    <img src="logo.jpeg" alt="theking Logo">
+                </div>
+            </section>
+
+            <section id="footer-area">
+                <h2>更多空间等你探索</h2>
+            </section>
+        </div>
+    </div>
+
+    <!-- ========== 健身训练页 ========== -->
+    <div id="gym-page" class="page">
+        <!-- 训练数据统计 -->
+        <div class="stats-bar">
+            <div class="stat-card">
+                <input type="text" class="stat-input" id="stat-weight" placeholder="--kg" value="81kg">
+                <div class="stat-label">当前体重</div>
+            </div>
+            <div class="stat-card">
+                <input type="text" class="stat-input" id="stat-squat" placeholder="--kg" value="100kg">
+                <div class="stat-label">深蹲PR</div>
+            </div>
+            <div class="stat-card">
+                <input type="text" class="stat-input" id="stat-bench" placeholder="--kg" value="60kg">
+                <div class="stat-label">卧推PR</div>
+            </div>
+        </div>
+
+        <!-- 顶部导航 -->
+        <div class="gym-nav">
+            <button class="gym-nav-btn active" onclick="switchGymTab('chest')">胸部</button>
+            <button class="gym-nav-btn" onclick="switchGymTab('back')">背部</button>
+            <button class="gym-nav-btn" onclick="switchGymTab('shoulder')">肩部</button>
+            <button class="gym-nav-btn" onclick="switchGymTab('legs')">腿部</button>
+            <button class="gym-nav-btn" onclick="switchGymTab('arms')">手臂</button>
+        </div>
+
+        <!-- 胸部内容 -->
+        <div id="chest" class="gym-section active">
+            <div class="workout-block">
+                <h2 class="block-title">常规项目</h2>
+                <ul class="exercise-list">
+                    <li class="exercise-item">
+                        <span>杠铃推胸 x4组 / 哑铃推胸 x4组</span>
+                        <input type="text" class="weight-input" placeholder="60kg" value="60kg">
+                    </li>
+                    <li class="exercise-item">
+                        <span>杠铃推上斜 x4组 / 哑铃推上斜 x4组</span>
+                        <input type="text" class="weight-input" placeholder="重量">
+                    </li>
+                    <li class="exercise-item"><span>蝴蝶机夹胸 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>器械推胸 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>龙门架夹胸 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>三头绳索下压 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                </ul>
+            </div>
+
+            <div class="workout-block">
+                <h2 class="block-title">变式项目 (补充)</h2>
+                <ul class="exercise-list">
+                    <li class="exercise-item"><span>杠铃推胸 x4组 / 哑铃推胸 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>杠铃推上斜 x4组 / 哑铃推上斜 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>蝴蝶机夹胸 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>器械推胸 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>飞鸟递减组(三组重) x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>直臂蝴蝶机反向飞鸟 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>悬垂举腿 x4组 (可选)</span><input type="text" class="weight-input" placeholder="重量"></li>
+                </ul>
+            </div>
+
+            <div class="workout-block">
+                <h2 class="block-title">对抗肌训练</h2>
+                <ul class="exercise-list">
+                    <li class="exercise-item"><span>杠铃推胸 x4组 / 哑铃推胸 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>杠铃推上斜 x4组 / 哑铃推上斜 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>蝴蝶机夹胸 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>器械推胸 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>高位下拉 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>哑铃划船 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>悬垂举腿 x4组 (可选)</span><input type="text" class="weight-input" placeholder="重量"></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 背部内容 -->
+        <div id="back" class="gym-section">
+            <div class="workout-block">
+                <h2 class="block-title">常规项目</h2>
+                <ul class="exercise-list">
+                    <li class="exercise-item"><span>引体向上 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item">
+                        <span>高位下拉 x4组</span>
+                        <input type="text" class="weight-input" placeholder="50kg" value="50kg">
+                    </li>
+                    <li class="exercise-item"><span>坐姿器械划船 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>直臂下压 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>坐姿绳索划船 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>二头弯举 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                </ul>
+            </div>
+
+            <div class="workout-block">
+                <h2 class="block-title">变式项目</h2>
+                <ul class="exercise-list">
+                    <li class="exercise-item"><span>引体向上 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>高位下拉 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>坐姿器械划船 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>直臂下压 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>坐姿绳索划船 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>二头弯举 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>蝴蝶机反向飞鸟 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>面拉 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                </ul>
+            </div>
+
+            <div class="workout-block">
+                <h2 class="block-title">对抗肌训练</h2>
+                <p class="note">参考胸部训练，如果采用对抗肌训练不能两天连着练。</p>
+            </div>
+        </div>
+
+        <!-- 肩部内容 -->
+        <div id="shoulder" class="gym-section">
+            <div class="workout-block">
+                <h2 class="block-title">常规项目</h2>
+                <ul class="exercise-list">
+                    <li class="exercise-item">
+                        <span>哑铃推肩 x4组 / 杠铃推肩 x4组</span>
+                        <input type="text" class="weight-input" placeholder="27.5kg" value="27.5kg">
+                    </li>
+                    <li class="exercise-item"><span>飞鸟递减组(三组重) x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>蝴蝶机反向飞鸟 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>侧平举 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>面拉 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>悬垂举腿 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>二头弯举 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                </ul>
+            </div>
+
+            <div class="workout-block">
+                <h2 class="block-title">变式项目</h2>
+                <ul class="exercise-list">
+                    <li class="exercise-item"><span>哑铃推肩 x4组 / 杠铃推肩 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>飞鸟递减组(三组重) x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>蝴蝶机反向飞鸟 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>侧平举 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>面拉 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>三头肌绳索下压 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>二头弯举 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                </ul>
+            </div>
+
+            <div class="workout-block">
+                <h2 class="block-title">变式项目 2</h2>
+                <ul class="exercise-list">
+                    <li class="exercise-item"><span>哑铃推肩 x4组 / 杠铃推肩 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>飞鸟递减组(三组重) x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>蝴蝶机反向飞鸟 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>侧平举 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>面拉 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>深蹲 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 腿部内容（新增） -->
+        <div id="legs" class="gym-section">
+            <div class="workout-block">
+                <h2 class="block-title">腿部常规</h2>
+                <ul class="exercise-list">
+                    <li class="exercise-item">
+                        <span>杠铃深蹲 x4组</span>
+                        <input type="text" class="weight-input" placeholder="100kg" value="100kg">
+                    </li>
+                    <li class="exercise-item"><span>倒蹬/腿举 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>腿弯举 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>腿屈伸 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>罗马尼亚硬拉 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>提踵 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                </ul>
+            </div>
+
+            <div class="workout-block">
+                <h2 class="block-title">有氧 & 核心</h2>
+                <ul class="exercise-list">
+                    <li class="exercise-item"><span>坡度走 20分钟（坡度20，速度4.0）</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>平板支撑 x3组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>悬垂举腿 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 手臂内容（新增） -->
+        <div id="arms" class="gym-section">
+            <div class="workout-block">
+                <h2 class="block-title">肱二头肌</h2>
+                <ul class="exercise-list">
+                    <li class="exercise-item"><span>杠铃弯举 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>哑铃锤式弯举 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>牧师凳弯举 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                </ul>
+            </div>
+
+            <div class="workout-block">
+                <h2 class="block-title">肱三头肌</h2>
+                <ul class="exercise-list">
+                    <li class="exercise-item"><span>绳索下压 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>仰卧臂屈伸 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>窄距卧推 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                    <li class="exercise-item"><span>过顶臂屈伸 x4组</span><input type="text" class="weight-input" placeholder="重量"></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== 饮食计划页 ========== -->
+    <div id="diet-page" class="page">
+        <div class="diet-nav">
+            <button class="diet-nav-btn training active" onclick="switchDietTab('training')">训练日</button>
+            <button class="diet-nav-btn rest" onclick="switchDietTab('rest')">休息日</button>
+        </div>
+
+        <!-- 训练日内容 -->
+        <div id="training" class="diet-section active">
+            <h1 style="font-size: 22px; margin-bottom: 20px; color: #2e7d32;">🏋️ 训练日饮食计划</h1>
+
+            <div class="diet-table-wrapper">
+                <table class="diet-table">
+                    <thead>
+                        <tr>
+                            <th>日期</th>
+                            <th>训练类型</th>
+                            <th>11:30 早午餐</th>
+                            <th>16:30 练前</th>
+                            <th>19:00 练后</th>
+                            <th>21:00 晚餐</th>
+                            <th style="text-align:center">总热量</th>
+                            <th style="text-align:center">蛋白质</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>周一</strong></td>
+                            <td><span class="type-badge badge-leg">练腿日</span></td>
+                            <td>鸡腿×2 + 米饭200g + 青菜</td>
+                            <td>碱水包 + 肌酸</td>
+                            <td>蛋白粉1.5勺 + 香蕉 + 碱水包</td>
+                            <td>鸡腿 + 鸭胗 + 蔬菜 + 碱水包</td>
+                            <td class="data-highlight data-cal" style="text-align:center">1710</td>
+                            <td class="data-highlight data-protein" style="text-align:center">134g</td>
+                        </tr>
+                        <tr class="aerobic-row">
+                            <td><strong>周二</strong></td>
+                            <td><span class="type-badge badge-shoulder">练肩臂</span></td>
+                            <td>鸡腿×2 + 米饭200g + 番茄炒蛋</td>
+                            <td>碱水包 + 肌酸</td>
+                            <td>蛋白粉1.5勺 + 香蕉 + 碱水包</td>
+                            <td>鸡腿 + 鸡蛋 + 蔬菜 + 碱水包</td>
+                            <td class="data-highlight data-cal" style="text-align:center">1750</td>
+                            <td class="data-highlight data-protein" style="text-align:center">138g</td>
+                        </tr>
+                        <tr>
+                            <td><strong>周三</strong></td>
+                            <td><span class="type-badge badge-chest">练胸背</span></td>
+                            <td>鸡腿×2 + 米饭200g + 青菜</td>
+                            <td>碱水包 + 肌酸</td>
+                            <td>蛋白粉1.5勺 + 香蕉 + 碱水包</td>
+                            <td>鸭胗×2 + 蔬菜 + 米饭</td>
+                            <td class="data-highlight data-cal" style="text-align:center">1680</td>
+                            <td class="data-highlight data-protein" style="text-align:center">130g</td>
+                        </tr>
+                        <tr>
+                            <td><strong>周四</strong></td>
+                            <td><span class="type-badge badge-leg">练腿日</span></td>
+                            <td>鸡腿×2 + 米饭200g + 青菜</td>
+                            <td>碱水包 + 肌酸</td>
+                            <td>蛋白粉1.5勺 + 香蕉 + 碱水包</td>
+                            <td>鸡腿 + 鸭胗 + 蔬菜 + 碱水包</td>
+                            <td class="data-highlight data-cal" style="text-align:center">1710</td>
+                            <td class="data-highlight data-protein" style="text-align:center">134g</td>
+                        </tr>
+                        <tr class="rest-row">
+                            <td><strong>周五</strong></td>
+                            <td><span class="type-badge badge-rest">休息日</span></td>
+                            <td>鸡腿×1 + 鸭胗×1 + 米饭150g + 青菜</td>
+                            <td class="dash">—</td>
+                            <td class="dash">—</td>
+                            <td>鸡腿 + 蔬菜 + 碱水包</td>
+                            <td class="data-highlight data-cal" style="text-align:center">1450</td>
+                            <td class="data-highlight data-protein" style="text-align:center">108g</td>
+                        </tr>
+                        <tr class="rest-row">
+                            <td><strong>周六</strong></td>
+                            <td><span class="type-badge badge-rest">休息日</span></td>
+                            <td>鸡腿×1 + 米饭150g + 青菜</td>
+                            <td class="dash">—</td>
+                            <td class="dash">—</td>
+                            <td>鸡腿 + 蔬菜 + 碱水包</td>
+                            <td class="data-highlight data-cal" style="text-align:center">1380</td>
+                            <td class="data-highlight data-protein" style="text-align:center">105g</td>
+                        </tr>
+                        <tr class="aerobic-row">
+                            <td><strong>周日</strong></td>
+                            <td><span class="type-badge badge-aerobic">有氧日</span></td>
+                            <td>鸡腿×1 + 米饭150g + 青菜</td>
+                            <td class="dash">—</td>
+                            <td>蛋白粉1勺</td>
+                            <td>鸡腿 + 蔬菜 + 碱水包</td>
+                            <td class="data-highlight data-cal" style="text-align:center">1520</td>
+                            <td class="data-highlight data-protein" style="text-align:center">115g</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tip-card">
+                <h3>💡 饮食执行提醒</h3>
+                <ul>
+                    <li>训练日必须在练后 <strong>30分钟内</strong> 补充蛋白粉 + 快碳</li>
+                    <li>休息日碳水减半，晚餐碱水包可根据饥饿感取舍</li>
+                    <li>所有鸡腿必须去皮，菜太油用水涮一下</li>
+                    <li>保证每天饮水 2L 以上</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 休息日内容 -->
+        <div id="rest" class="diet-section">
+            <h1 style="font-size: 22px; margin-bottom: 20px; color: #1565c0;">🧘 休息日饮食计划</h1>
+            <p style="color: #888; font-size: 14px; margin-bottom: 20px;">周五、周六为休息日，碳水减半，无需练前练后补充</p>
+
+            <div class="rest-table-wrapper">
+                <table class="rest-table">
+                    <thead>
+                        <tr>
+                            <th>日期</th>
+                            <th>11:30 早午餐</th>
+                            <th>21:00 晚餐</th>
+                            <th style="text-align:center">总热量</th>
+                            <th style="text-align:center">蛋白质</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>周五</strong><br><span class="type-badge badge-rest" style="margin-top:6px">休息日</span></td>
+                            <td>
+                                <span class="section-label">早午餐</span>
+                                <span class="section-content">鸡腿×1 + 鸭胗×1 + 米饭150g + 青菜</span>
+                            </td>
+                            <td>
+                                <span class="section-label">晚餐</span>
+                                <span class="section-content">鸡腿×1 + 蔬菜 + 碱水包×1</span>
+                            </td>
+                            <td class="macro-cell data-cal">1450</td>
+                            <td class="macro-cell data-protein">108g</td>
+                        </tr>
+                        <tr>
+                            <td><strong>周六</strong><br><span class="type-badge badge-rest" style="margin-top:6px">休息日</span></td>
+                            <td>
+                                <span class="section-label">早午餐</span>
+                                <span class="section-content">鸡腿×1 + 米饭150g + 青菜</span>
+                            </td>
+                            <td>
+                                <span class="section-label">晚餐</span>
+                                <span class="section-content">鸡腿×1 + 蔬菜 + 碱水包×1（可选）</span>
+                            </td>
+                            <td class="macro-cell data-cal">1380</td>
+                            <td class="macro-cell data-protein">105g</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tip-card" style="border-left-color: #2196F3;">
+                <h3>📋 休息日执行原则</h3>
+                <ul>
+                    <li>无训练消耗低，<strong>必须严格控制碳水</strong>，米饭减至150g</li>
+                    <li>如果晚餐感觉不饿，可以去掉碱水包，只吃鸡腿和蔬菜</li>
+                    <li>多喝水，保证睡眠 7-8 小时，让肌肉充分恢复</li>
+                    <li>可以进行轻度拉伸或散步，促进血液循环</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== 数据统计页（占位） ========== -->
+    <div id="stats-page" class="page">
+        <div style="padding: 100px 20px; text-align: center; color: var(--text-sub);">
+            <h2>📊 数据统计</h2>
+            <p>功能开发中...</p>
+            <p>将记录每次训练的重量、组数、次数</p>
+        </div>
+    </div>
+
+    <!-- ========== 设置页（占位） ========== -->
+    <div id="settings-page" class="page">
+        <div style="padding: 100px 20px; text-align: center; color: var(--text-sub);">
+            <h2>⚙️ 设置</h2>
+            <p>功能开发中...</p>
+            <p>可设置体重目标、训练提醒等</p>
+        </div>
+    </div>
+
+    <!-- ========== 动作演示弹窗 ========== -->
+    <div class="action-modal-overlay" id="actionModalOverlay" onclick="closeActionModal(event)">
+        <div class="action-modal" onclick="event.stopPropagation()">
+            <div class="action-modal-header">
+                <h3 id="modalActionName">动作名称</h3>
+                <div class="target-muscle" id="modalTargetMuscle">目标肌群</div>
+                <button class="action-modal-close" onclick="closeActionModal()">&times;</button>
+            </div>
+            <div class="action-modal-body">
+                <div class="action-video-container" id="modalVideoContainer">
+                    <div class="action-video-placeholder">
+                        <div class="placeholder-icon">&#127947;</div>
+                        <div>视频加载中...</div>
+                    </div>
+                </div>
+                <div class="action-steps" id="modalSteps">
+                    <h4>动作步骤</h4>
+                    <ol></ol>
+                </div>
+                <div class="section-divider"></div>
+                <div class="action-tips" id="modalTips">
+                    <h4>关键要点</h4>
+                    <ul></ul>
+                </div>
+                <div class="section-divider" id="modalMistakesDivider"></div>
+                <div class="action-mistakes" id="modalMistakes">
+                    <h4>常见错误</h4>
+                    <ul></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== 训练数据持久化 (localStorage) ==========
+        (function() {
+            const keys = {
+                weight: 'theking_stat_weight',
+                squat: 'theking_stat_squat',
+                bench: 'theking_stat_bench'
+            };
+
+            function loadStats() {
+                const w = localStorage.getItem(keys.weight);
+                const s = localStorage.getItem(keys.squat);
+                const b = localStorage.getItem(keys.bench);
+                if (w) document.getElementById('stat-weight').value = w;
+                if (s) document.getElementById('stat-squat').value = s;
+                if (b) document.getElementById('stat-bench').value = b;
+            }
+
+            function saveStat(key, inputId) {
+                const el = document.getElementById(inputId);
+                if (!el) return;
+                el.addEventListener('input', function() {
+                    localStorage.setItem(key, el.value);
+                });
+                el.addEventListener('blur', function() {
+                    // 失去焦点时去除前后空白
+                    el.value = el.value.trim();
+                    localStorage.setItem(key, el.value);
+                });
+                // 回车也触发保存
+                el.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        el.blur();
+                    }
+                });
+            }
+
+            // 页面加载完成后执行
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', function() {
+                    loadStats();
+                    saveStat(keys.weight, 'stat-weight');
+                    saveStat(keys.squat, 'stat-squat');
+                    saveStat(keys.bench, 'stat-bench');
+                });
+            } else {
+                loadStats();
+                saveStat(keys.weight, 'stat-weight');
+                saveStat(keys.squat, 'stat-squat');
+                saveStat(keys.bench, 'stat-bench');
+            }
+        })();
+
+        // ========== 所有动作重量持久化 ==========
+        (function() {
+            const PREFIX = 'theking_w_';
+
+            // 生成唯一 key：所属板块 + 动作名（去掉多余空格和特殊字符）
+            function makeKey(sectionId, actionName) {
+                const safeName = actionName.replace(/[^\w\u4e00-\u9fa5]/g, '_').substring(0, 40);
+                return PREFIX + sectionId + '_' + safeName;
+            }
+
+            function initWeightStorage() {
+                document.querySelectorAll('.gym-section').forEach(function(section) {
+                    const sectionId = section.id;
+                    section.querySelectorAll('.exercise-item').forEach(function(item) {
+                        const input = item.querySelector('.weight-input');
+                        if (!input) return;
+
+                        const actionSpan = item.querySelector('span');
+                        const actionName = actionSpan ? actionSpan.textContent.trim() : '';
+                        const key = makeKey(sectionId, actionName);
+
+                        // 加载已保存的值
+                        const saved = localStorage.getItem(key);
+                        if (saved !== null) {
+                            input.value = saved;
+                        }
+
+                        // 实时保存
+                        input.addEventListener('input', function() {
+                            localStorage.setItem(key, input.value);
+                        });
+
+                        // 失去焦点时 trim 保存
+                        input.addEventListener('blur', function() {
+                            input.value = input.value.trim();
+                            localStorage.setItem(key, input.value);
+                        });
+
+                        // 回车保存并失去焦点
+                        input.addEventListener('keydown', function(e) {
+                            if (e.key === 'Enter') {
+                                input.blur();
+                            }
+                        });
+                    });
+                });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initWeightStorage);
+            } else {
+                initWeightStorage();
+            }
+        })();
+
+        // ========== 动作演示数据库与弹窗控制 ==========
+        const ACTION_DB = {
+            "杠铃推胸": {
+                muscle: "胸大肌（整体）",
+                steps: ["平躺在卧推凳上，双脚踩实地面", "双手略宽于肩握住杠铃，手腕保持中立", "吸气缓慢下放至胸部，肘部与身体约75度", "呼气推起至手臂伸直但不锁死", "重复完成规定次数"],
+                tips: ["肩胛骨后缩下沉，保持挺胸", "杠铃运动轨迹呈轻微弧线", "核心收紧，腰部保持自然弓度", "推起时呼气，下放时吸气"],
+                mistakes: ["杠铃放得太高（脖子位置）", "肘部完全张开成90度伤肩", "腰部过度拱起", "手腕过度后翻"],
+                video: "videos/bench.mp4"
+            },
+            "哑铃推胸": {
+                muscle: "胸大肌（整体+拉伸感更强）",
+                steps: ["手持哑铃坐于凳边，顺势躺平", "哑铃位于胸部两侧，掌心相对", "吸气缓慢下放至胸部两侧，感受拉伸", "呼气将哑铃推起至几乎相触", "控制节奏，避免借力"],
+                tips: ["下放深度比杠铃更深，拉伸更充分", "哑铃轨迹可自然内收", "保持肩胛骨稳定", "选择可控重量，避免耸肩"],
+                mistakes: ["哑铃碰撞", "下放过快失去控制", "耸肩借力", "腰部离开凳面"],
+                video: "videos/dumbbellbench.mp4"
+            },
+            "杠铃推上斜": {
+                muscle: "胸大肌上部（锁骨部）",
+                steps: ["调整卧推凳角度为30-45度", "坐稳后双手握杠，位置略高于胸部", "吸气下放至锁骨下方", "呼气推起至手臂伸直", "保持节奏稳定"],
+                tips: ["30度角最适刺激上胸", "握距略窄于平板推胸", "避免角度过高变成练肩", "下放时感受上胸拉伸"],
+                mistakes: ["角度过高（超过45度）练肩", "杠铃放得太低压脖子", "借力弹胸", "脚离开地面"],
+                video: "videos/inclinebench.mp4"
+            },
+            "哑铃推上斜": {
+                muscle: "胸大肌上部",
+                steps: ["调整凳角度30-45度", "手持哑铃躺平，哑铃位于胸部两侧", "吸气下放至胸部两侧", "呼气推起同时自然内收", "顶端哑铃不相碰，保持张力"],
+                tips: ["可单臂交替进行增加核心挑战", "下放深度比杠铃更充分", "控制离心收缩速度", "手腕保持中立位"],
+                mistakes: ["角度过高", "哑铃晃动失控", "耸肩", "借力甩哑铃"]
+            ,
+                video: "videos/inclinedumbbell.mp4"},
+            "蝴蝶机夹胸": {
+                muscle: "胸大肌（内侧线条）",
+                steps: ["调整座椅高度使把手与胸部平齐", "坐稳背靠垫，双手握住把手", "肘部微屈固定角度", "呼气用力将把手合拢于胸前", "吸气缓慢控制回放至拉伸位"],
+                tips: ["想象用胸部发力而非手臂", "肘部角度保持不变", "顶峰收缩停留1秒", "回放时感受胸部拉伸"],
+                mistakes: ["手臂完全伸直", "借力甩动", "耸肩", "幅度太小"]
+            ,
+                video: "videos/pecdeck.mp4"},
+            "器械推胸": {
+                muscle: "胸大肌（整体）",
+                steps: ["调整座椅使把手与胸部中段对齐", "坐稳，腰背贴紧靠垫", "双手握住把手，肘部自然弯曲", "呼气向前推出至手臂接近伸直", "吸气缓慢回放至起始位"],
+                tips: ["轨迹固定适合新手", "可专注感受胸部发力", "推出时呼气，回放时吸气", "避免完全伸直锁死关节"],
+                mistakes: ["座椅高度不合适", "完全锁死肘关节", "腰部离开靠垫", "借助惯性"]
+            ,
+                video: "videos/chestpress.mp4"},
+            "龙门架夹胸": {
+                muscle: "胸大肌（下胸及外沿）",
+                steps: ["将滑轮调至高位，双手各握一手柄", "向前一步，身体微微前倾", "肘部微屈，手臂从高处向下方合拢", "呼气用力夹胸，掌心相对", "吸气缓慢回放至上位拉伸"],
+                tips: ["站在滑轮正中间", "重心稳定，核心收紧", "轨迹呈弧形向下", "顶峰收缩挤压胸部"],
+                mistakes: ["身体过度前倾", "用手臂发力代替胸部", "站得太靠前", "回放时失去张力"]
+            ,
+                video: "videos/cableflye.mp4"},
+            "三头绳索下压": {
+                muscle: "肱三头肌",
+                steps: ["站立面对龙门架，双手握住绳索", "上臂紧贴身体两侧", "呼气下压至手臂完全伸直", "吸气缓慢回放至90度", "保持上臂不晃动"],
+                tips: ["上臂是支点，不前后移动", "下压时向两侧分开绳索", "控制回放速度", "身体略微前倾保持平衡"],
+                mistakes: ["上臂前后摆动借力", "身体前后晃动", "只动前臂不动上臂", "重量过重导致借力"]
+            ,
+                video: "videos/triceppushdown.mp4"},
+            "飞鸟递减组": {
+                muscle: "胸大肌（整体，强调充血）",
+                steps: ["选择三个递减重量", "从大重量开始做至力竭", "立即换中等重量继续做", "最后用小重量做到完全力竭", "全程保持肘部微屈"],
+                tips: ["递减幅度建议30-40%", "组间不休息直接换重量", "专注于胸部收缩", "适合作为训练收尾动作"],
+                mistakes: ["重量选择不合理", "休息时间过长", "动作变形", "速度过快"]
+            ,
+                video: "videos/dropflye.mp4"},
+            "直臂蝴蝶机反向飞鸟": {
+                muscle: "三角肌后束",
+                steps: ["面向蝴蝶机坐反方向", "双臂伸直握住把手", "呼气向两侧打开至与肩平", "吸气缓慢回放", "保持手臂基本伸直"],
+                tips: ["适合后束孤立训练", "打开时感受后束收缩", "幅度适中，过犹不及", "避免耸肩"],
+                mistakes: ["耸肩借力", "幅度过大", "手肘弯曲", "身体晃动"]
+            },
+            "悬垂举腿": {
+                muscle: "腹直肌下部",
+                steps: ["双手握杠悬垂，身体自然下垂", "保持双腿伸直或微屈", "用腹部力量将腿抬起至水平或更高", "缓慢下放至起始位", "避免身体大幅摆动"],
+                tips: ["初学者可以屈腿做", "控制离心收缩", "不用追求过高幅度", "呼吸配合：抬起呼气，下放吸气"],
+                mistakes: ["身体大幅摆动借力", "用手臂拉身体", "下放过快", "只做半程"]
+            ,
+                video: "videos/legraises.mp4"},
+            "引体向上": {
+                muscle: "背阔肌（整体宽度）",
+                steps: ["双手略宽于肩握住单杠", "手臂伸直悬垂，肩胛骨下沉", "呼气拉起身体至下巴过杠", "吸气缓慢下放至手臂伸直", "全程控制不借力摆动"],
+                tips: ["启动时先下沉肩胛骨", "想象用肘部向下拉", "多种握距（宽/窄/对握）刺激不同", "身体保持稳定不晃动"],
+                mistakes: ["只做半程", "身体大幅摆动借力", "耸肩", "下巴前伸勉强过杠"]
+            },
+            "高位下拉": {
+                muscle: "背阔肌（宽度）",
+                steps: ["坐稳，大腿固定好挡板", "双手略宽于肩握住横杆", "身体微微后倾，挺胸", "呼气将横杆拉至上胸部", "吸气缓慢回放至起始位"],
+                tips: ["先用背部发力而非手臂", "回放时感受背阔拉伸", "避免过度后仰", "拉至胸部时挤压背部"],
+                mistakes: ["过度后仰借力", "用手臂拉而非背部", "回放过快", "耸肩"],
+                video: "videos/latpulldown.mp4"
+            },
+            "坐姿器械划船": {
+                muscle: "背阔肌、菱形肌、斜方肌中部",
+                steps: ["坐稳，双脚踩实踏板", "双手握住把手，手臂伸直", "保持背部挺直，挺胸", "呼气将把手拉向腹部", "吸气缓慢回放"],
+                tips: ["拉至腹部时挤压肩胛骨", "回放时充分拉伸", "保持躯干稳定", "避免过度后仰"],
+                mistakes: ["过度后仰", "耸肩", "用手臂拉", "腰部弯曲"]
+            ,
+                video: "videos/machinerow.mp4"},
+            "直臂下压": {
+                muscle: "背阔肌（孤立训练）",
+                steps: ["面对龙门架站立", "双手与肩同宽握住直杆", "手臂伸直从高处向大腿方向下压", "保持手臂微屈固定", "压至大腿处挤压背部"],
+                tips: ["手臂是杠杆，不弯曲", "用背部发力带动手臂", "身体微微前倾保持稳定", "回放时感受拉伸"],
+                mistakes: ["手臂弯曲", "身体前后晃动", "幅度太小", "耸肩"]
+            ,
+                video: "videos/straightarmpulldown.mp4"},
+            "坐姿绳索划船": {
+                muscle: "背阔肌、菱形肌",
+                steps: ["坐于垫子上，双脚踩稳", "双手握住V字把手", "背部挺直，核心收紧", "呼气将把手拉向腹部", "回放时感受背部拉伸"],
+                tips: ["V字把手更适合收缩", "挤压肩胛骨", "保持稳定不晃动", "呼吸配合动作节奏"],
+                mistakes: ["耸肩", "腰部弯曲", "借力晃动", "回放过快"]
+            ,
+                video: "videos/cablerow.mp4"},
+            "二头弯举": {
+                muscle: "肱二头肌",
+                steps: ["站立，双手握杠铃/哑铃于体侧", "上臂紧贴身体不动", "呼气弯举至肩部", "顶峰收缩", "吸气缓慢下放至起始位"],
+                tips: ["上臂是支点不移动", "控制下放速度", "顶峰停留1秒", "不要晃动身体借力"],
+                mistakes: ["身体前后晃动", "上臂移动借力", "完全依靠惯性", "下放过快"]
+            ,
+                video: "videos/bicepcurl.mp4"},
+            "蝴蝶机反向飞鸟": {
+                muscle: "三角肌后束、菱形肌",
+                steps: ["面向蝴蝶机反坐", "双手握住低位把手", "双臂微屈向两侧打开", "打开至与肩平行", "缓慢回放"],
+                tips: ["专注后束发力", "避免耸肩", "回放时感受拉伸", "小重量高次数效果好"],
+                mistakes: ["耸肩", "幅度过大", "身体前倾", "借力甩动"]
+            ,
+                video: "videos/reversepecdeck.mp4"},
+            "面拉": {
+                muscle: "三角肌后束、肩袖肌群",
+                steps: ["将绳索调至面部高度", "双手握住绳索末端", "向面部方向拉，同时外旋手臂", "拉至绳索接近面部两侧", "缓慢回放"],
+                tips: ["外旋动作充分激活肩袖", "大臂与地面平行", "避免耸肩", "适合热身和收尾"],
+                mistakes: ["耸肩", "身体后仰借力", "幅度太小", "不做外旋"]
+            },
+            "哑铃推肩": {
+                muscle: "三角肌前束、中束",
+                steps: ["坐直，手持哑铃于肩部两侧", "掌心向前，肘部略低于肩部", "呼气将哑铃推至头顶", "哑铃在顶端接近但不碰撞", "吸气缓慢下放"],
+                tips: ["不要完全伸直锁死", "核心收紧保持脊柱中立", "下放至耳朵水平", "哑铃路径略微内收"],
+                mistakes: ["过度拱腰", "耸肩", "完全锁死关节", "晃动借力"],
+                video: "videos/shoulderpress.mp4"
+            },
+            "杠铃推肩": {
+                muscle: "三角肌前束",
+                steps: ["站立或坐姿，杠铃置于锁骨处", "双手略宽于肩", "呼气将杠铃推至头顶", "杠铃轨迹经过面部前方", "吸气缓慢下放至锁骨"],
+                tips: ["核心收紧防止腰部过度伸展", "下巴微收让出轨迹", "手腕保持中立", "可坐可站，坐姿更稳定"],
+                mistakes: ["腰部过度后仰", "杠铃离面部太远", "耸肩借力", "下放过低"]
+            ,
+                video: "videos/shoulderpress.mp4"},
+            "侧平举": {
+                muscle: "三角肌中束",
+                steps: ["站立，手持哑铃于体侧", "肘部微屈固定角度", "向两侧抬起至肩平", "顶峰收缩", "缓慢下放"],
+                tips: ["想象倒水动作（小拇指略高）", "肘部角度不变", "小重量多次数效果好", "避免耸肩"],
+                mistakes: ["重量过大借力", "耸肩", "身体晃动", "抬得过高"]
+            ,
+                video: "videos/lateralraise.mp4"},
+            "三头肌绳索下压": {
+                muscle: "肱三头肌",
+                steps: ["面对龙门架站立", "上臂紧贴身体两侧", "呼气下压至手臂伸直", "顶峰时向两侧分开绳索", "吸气缓慢回放"],
+                tips: ["顶峰分开绳索增加收缩感", "上臂不移动", "控制回放", "手腕保持中立"],
+                mistakes: ["上臂移动", "身体晃动", "幅度太小", "重量过重"]
+            },
+            "深蹲": {
+                muscle: "股四头肌、臀大肌、腘绳肌",
+                steps: ["双脚略宽于肩站立", "杠铃置于斜方肌上部", "吸气屈膝下蹲至大腿至少平行地面", "呼气站起至起始位", "全程保持核心收紧"],
+                tips: ["膝盖方向与脚尖一致", "挺胸收腹，脊柱中立", "下蹲吸气，站起呼气", "重心在脚掌中部"],
+                mistakes: ["膝盖内扣", "腰部弯曲", "脚后跟离地", "只做半程", "站起时过度挺髋"],
+                video: "videos/squat.mp4"
+            },
+            "倒蹬": {
+                muscle: "股四头肌、臀大肌",
+                steps: ["坐于倒蹬机上，背部贴紧靠垫", "双脚踩在踏板上，略宽于肩", "吸气屈膝下放至可控深度", "呼气蹬起至腿部接近伸直", "不锁死膝关节"],
+                tips: ["踏板位置影响刺激部位（高/低）", "膝盖全程与脚尖方向一致", "控制下放速度", "适合大重量训练"],
+                mistakes: ["膝盖完全伸直锁死", "腰部离开靠垫", "深度太浅", "膝盖内扣"]
+            ,
+                video: "videos/legpress.mp4"},
+            "腿举": {
+                muscle: "股四头肌、臀大肌",
+                steps: ["坐于腿举机，背部贴紧靠垫", "双脚踩在踏板上", "吸气屈膝下放", "呼气蹬起", "保持节奏控制"],
+                tips: ["与倒蹬类似，器械不同", "控制动作幅度", "选择合适重量", "注意呼吸配合"],
+                mistakes: ["锁死膝关节", "腰部离开靠垫", "深度不够", "膝盖内扣"]
+            ,
+                video: "videos/legpress.mp4"},
+            "腿弯举": {
+                muscle: "腘绳肌（股二头肌）",
+                steps: ["俯卧或坐姿，小腿置于滚轴下方", "呼气屈膝将滚轴向臀部方向拉", "顶峰收缩", "吸气缓慢回放至伸直", "全程控制"],
+                tips: ["臀部不离开凳子", "动作幅度充分", "控制回放速度", "感受腘绳肌收缩"],
+                mistakes: ["臀部抬起", "幅度太小", "借力甩动", "回放过快"]
+            ,
+                video: "videos/legcurl.mp4"},
+            "腿屈伸": {
+                muscle: "股四头肌（孤立）",
+                steps: ["坐于器械上，小腿前侧置于滚轴下", "双手握住两侧把手", "呼气伸直膝盖抬起滚轴", "顶峰收缩", "吸气缓慢回放"],
+                tips: ["大腿紧贴凳子", "顶峰停留1秒", "控制回放", "适合预热或收尾"],
+                mistakes: ["大腿抬起离开凳子", "膝盖超伸", "重量过重", "速度过快"]
+            ,
+                video: "videos/legextension.mp4"},
+            "罗马尼亚硬拉": {
+                muscle: "腘绳肌、臀大肌、下背部",
+                steps: ["站立，双手握杠铃于体前", "膝盖微屈固定", "髋部后推，上身前倾", "杠铃沿大腿下滑至膝盖下方", "呼气髋部前推站起"],
+                tips: ["膝盖角度基本不变", "感受腘绳肌拉伸", "杠铃贴近身体", "站起时夹臀"],
+                mistakes: ["膝盖弯曲太多变深蹲", "弓背弯腰", "杠铃远离身体", "站起时过度后仰"]
+            ,
+                video: "videos/romaniandeadlift.mp4"},
+            "提踵": {
+                muscle: "小腿腓肠肌、比目鱼肌",
+                steps: ["站立于提踵机或台阶边缘", "脚跟下放至最低拉伸位", "呼气踮起脚尖至最高", "顶峰收缩", "吸气缓慢下放"],
+                tips: [ "底部充分拉伸", "顶峰停留", "可单腿增加难度", "控制节奏"],
+                mistakes: ["幅度太小", "借助弹力", "膝盖过度弯曲", "速度过快"]
+            ,
+                video: "videos/calfraise.mp4"},
+            "坡度走": {
+                muscle: "心肺耐力、腿部耐力",
+                steps: ["将跑步机坡度调至15-20", "速度设定3.5-4.5", "双手自然摆动或轻扶", "保持身体挺直", "持续20-30分钟"],
+                tips: ["比跑步更保护膝盖", "坡度比速度更重要", "保持心率在燃脂区间", "手臂参与增加消耗"],
+                mistakes: ["身体过度前倾", "抓握扶手太紧", "速度过快", "含胸驼背"]
+            ,
+                video: "videos/inclinewalk.mp4"},
+            "平板支撑": {
+                muscle: "核心肌群（腹横肌等）",
+                steps: ["俯卧，前臂支撑于地面", "肘部在肩部正下方", "身体成一条直线", "收紧核心和臀部", "保持呼吸，坚持时间"],
+                tips: ["不要塌腰也不要拱背", "臀部不翘起", "脖子保持中立", "逐渐增加时间"],
+                mistakes: ["塌腰", "臀部过高", "憋气", "头部下垂"]
+            },
+            "杠铃弯举": {
+                muscle: "肱二头肌",
+                steps: ["站立，双手与肩同宽握杠", "上臂紧贴身体", "呼气弯举杠铃至胸前", "顶峰收缩", "吸气缓慢下放"],
+                tips: ["身体不晃动", "手腕保持中立", "控制下放", "顶峰挤压二头肌"],
+                mistakes: ["身体前后晃动", "肘部前移", "重量过重", "半程动作"],
+                video: "videos/bicepcurl.mp4"
+            },
+            "哑铃锤式弯举": {
+                muscle: "肱肌、肱桡肌",
+                steps: ["站立，手持哑铃掌心相对", "上臂紧贴身体", "呼气弯举哑铃至肩部", "保持掌心相对", "吸气缓慢下放"],
+                tips: ["针对肱肌增加手臂厚度", "手腕保持中立", "控制节奏", "避免耸肩"],
+                mistakes: ["身体晃动", "耸肩", "重量过重", "速度过快"]
+            ,
+                video: "videos/hammercurl.mp4"},
+            "牧师凳弯举": {
+                muscle: "肱二头肌（孤立）",
+                steps: ["坐于牧师凳上，大臂贴紧斜板", "双手握住杠铃或哑铃", "呼气弯举至收缩位", "顶峰停留", "吸气缓慢下放至手臂伸直"],
+                tips: ["大臂不离开板面", "充分拉伸和收缩", "适合孤立训练", "控制下放"],
+                mistakes: ["大臂离开板面", "幅度不足", "下放过快", "借力"]
+            ,
+                video: "videos/preachercurl.mp4"},
+            "绳索下压": {
+                muscle: "肱三头肌",
+                steps: ["面对龙门架站立", "上臂紧贴身体", "呼气下压至手臂伸直", "顶峰收缩", "吸气缓慢回放"],
+                tips: ["上臂不移动", "控制回放", "手腕中立", "顶峰挤压三头肌"],
+                mistakes: ["上臂移动", "身体晃动", "幅度太小", "重量过重"]
+            ,
+                video: "videos/triceppushdown.mp4"},
+            "仰卧臂屈伸": {
+                muscle: "肱三头肌（长头）",
+                steps: ["平躺于凳上，双手握杠铃/哑铃", "手臂伸直于胸部上方", "吸气屈肘下放至额头附近", "呼气伸直手臂", "保持上臂固定"],
+                tips: ["上臂垂直地面不移动", "下放时感受三头肌拉伸", "避免头部移动", "控制节奏"],
+                mistakes: ["上臂晃动", "杠铃砸头", "肘部外展", "幅度太小"]
+            ,
+                video: "videos/skullcrusher.mp4"},
+            "窄距卧推": {
+                muscle: "肱三头肌、胸大肌内侧",
+                steps: ["平躺，双手窄握杠铃", "握距与肩同宽或略窄", "吸气下放至胸部", "呼气推起", "全程控制"],
+                tips: ["对三头肌刺激更强", "手腕保持中立", "肘部靠近身体", "控制下放"],
+                mistakes: ["握距过窄伤手腕", "手腕弯曲", "肘部过度外展", "借力弹胸"]
+            ,
+                video: "videos/closegripbench.mp4"},
+            "过顶臂屈伸": {
+                muscle: "肱三头肌长头",
+                steps: ["双手握住哑铃或绳索", "手臂伸直举过头顶", "吸气屈肘下放至头后", "呼气伸直手臂", "保持上臂靠近耳朵"],
+                tips: ["充分拉伸三头肌长头", "核心收紧", "控制下放", "选择适中重量"],
+                mistakes: ["上臂移动", "腰部过度伸展", "重量过重", "幅度不足"]
+            ,
+                video: "videos/overheadextension.mp4"}
+        };
+
+        // 模糊匹配动作名称
+        function findActionData(name) {
+            // 直接匹配
+            if (ACTION_DB[name]) return ACTION_DB[name];
+            // 去掉组数信息再匹配
+            const clean = name.replace(/\s*x\d+组.*/, '').replace(/\s*\(\S+\)/, '').trim();
+            if (ACTION_DB[clean]) return ACTION_DB[clean];
+            // 部分匹配
+            for (const key in ACTION_DB) {
+                if (clean.includes(key) || key.includes(clean)) return ACTION_DB[key];
+            }
+            return null;
+        }
+
+        function openActionModal(actionName) {
+            const data = findActionData(actionName);
+            const overlay = document.getElementById('actionModalOverlay');
+            document.getElementById('modalActionName').textContent = actionName;
+
+            if (data) {
+                document.getElementById('modalTargetMuscle').textContent = data.muscle;
+
+                // 视频
+                const videoContainer = document.getElementById('modalVideoContainer');
+                if (data.video) {
+                    videoContainer.innerHTML = '<video id="modalVideo" loop muted playsinline><source src="' + data.video + '" type="video/mp4"></video>';
+                    const video = videoContainer.querySelector('video');
+                    video.play().catch(function(){});
+                } else {
+                    videoContainer.innerHTML = '<div class="action-video-placeholder"><div class="placeholder-icon">&#127947;</div><div>此动作暂无视频演示</div><div style="font-size:12px;color:#555;margin-top:4px">文字步骤如下</div></div>';
+                }
+
+                // 步骤
+                const stepsOl = document.getElementById('modalSteps').querySelector('ol');
+                stepsOl.innerHTML = data.steps.map(function(s) { return '<li>' + s + '</li>'; }).join('');
+                document.getElementById('modalSteps').style.display = '';
+
+                // 要点
+                const tipsUl = document.getElementById('modalTips').querySelector('ul');
+                tipsUl.innerHTML = data.tips.map(function(t) { return '<li>' + t + '</li>'; }).join('');
+                document.getElementById('modalTips').style.display = '';
+
+                // 常见错误
+                if (data.mistakes && data.mistakes.length > 0) {
+                    const mistUl = document.getElementById('modalMistakes').querySelector('ul');
+                    mistUl.innerHTML = data.mistakes.map(function(m) { return '<li>' + m + '</li>'; }).join('');
+                    document.getElementById('modalMistakes').style.display = '';
+                    document.getElementById('modalMistakesDivider').style.display = '';
+                }
+            } else {
+                document.getElementById('modalTargetMuscle').textContent = '';
+                document.getElementById('modalVideoContainer').innerHTML = '<div class="action-video-placeholder"><div class="placeholder-icon">&#127947;</div><div>暂无此动作的详细数据</div><div style="font-size:12px;color:#555;margin-top:4px">欢迎补充动作说明</div></div>';
+                document.getElementById('modalSteps').style.display = 'none';
+                document.getElementById('modalTips').style.display = 'none';
+                document.getElementById('modalMistakes').style.display = 'none';
+                document.getElementById('modalMistakesDivider').style.display = 'none';
+            }
+
+            overlay.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeActionModal(event) {
+            if (event && event.target !== document.getElementById('actionModalOverlay')) return;
+            const overlay = document.getElementById('actionModalOverlay');
+            overlay.classList.remove('show');
+            document.body.style.overflow = '';
+            // 暂停视频
+            const video = document.getElementById('modalVideo');
+            if (video) video.pause();
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeActionModal();
+        });
+
+        // 为所有动作名称添加点击事件
+        function initActionClicks() {
+            document.querySelectorAll('.exercise-item').forEach(function(item) {
+                const span = item.querySelector('span');
+                if (!span) return;
+                span.classList.add('action-name');
+                const actionText = span.textContent.trim();
+                span.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    openActionModal(actionText);
+                });
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initActionClicks);
+        } else {
+            initActionClicks();
+        }
+
+        // ========== 菜单控制 ==========
+        function toggleMenu() {
+            const menu = document.getElementById('side-menu');
+            const overlay = document.getElementById('overlay');
+            const btn = document.getElementById('menu-btn');
+
+            if (menu.classList.contains('open')) {
+                menu.classList.remove('open');
+                overlay.classList.remove('show');
+                btn.classList.remove('active');
+            } else {
+                menu.classList.add('open');
+                overlay.classList.add('show');
+                btn.classList.add('active');
+            }
+        }
+
+        // ========== 页面切换 ==========
+        function showPage(pageName) {
+            // 隐藏所有页面
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+
+            // 显示选中页面
+            document.getElementById(pageName + '-page').classList.add('active');
+
+            // 更新菜单激活状态
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+
+            // 关闭菜单
+            toggleMenu();
+
+            // 滚动到顶部
+            window.scrollTo(0, 0);
+        }
+
+        // ========== 健身页标签切换 ==========
+        function switchGymTab(tabId) {
+            document.querySelectorAll('.gym-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.querySelectorAll('.gym-nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        // ========== 饮食页标签切换 ==========
+        function switchDietTab(tabName) {
+            document.querySelectorAll('.diet-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.querySelectorAll('.diet-nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            document.getElementById(tabName).classList.add('active');
+
+            if(tabName === 'training') {
+                document.querySelector('.diet-nav-btn.training').classList.add('active');
+            } else {
+                document.querySelector('.diet-nav-btn.rest').classList.add('active');
+            }
+        }
+
+        // ========== 点击动作划掉功能 ==========
+        document.querySelectorAll('.exercise-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                // 如果点击的是输入框，不划掉
+                if (e.target.tagName === 'INPUT') return;
+                this.classList.toggle('completed');
+            });
+        });
+
+        // ========== 手机侧滑打开菜单 ==========
+        let touchStartX = 0;
+        document.addEventListener('touchstart', function(e) {
+            touchStartX = e.touches[0].clientX;
+        });
+
+        document.addEventListener('touchend', function(e) {
+            const touchEndX = e.changedTouches[0].clientX;
+            const diff = touchEndX - touchStartX;
+
+            // 从左边缘往右滑超过50px，打开菜单
+            if (touchStartX < 30 && diff > 50) {
+                const menu = document.getElementById('side-menu');
+                if (!menu.classList.contains('open')) {
+                    toggleMenu();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
