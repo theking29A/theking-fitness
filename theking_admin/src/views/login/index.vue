@@ -3,14 +3,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { adminLogin } from '@/api/admin'
-import { Button, Form, Input, message } from 'ant-design-vue'
-
-// 重命名组件，避免与原生 HTML 标签冲突
-const AButton = Button
-const AForm = Form
-const AFormItem = Form.Item
-const AInput = Input
-const AInputPassword = Input.Password
+import { message } from 'ant-design-vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -48,17 +41,17 @@ const handleLogin = async () => {
         <h2>TheKing Admin</h2>
         <p>健身管理后台</p>
       </div>
-      <AForm layout="vertical">
-        <AFormItem label="管理员账号">
-          <AInput v-model:value="form.account" size="large" placeholder="请输入管理员账号" @pressEnter="handleLogin" />
-        </AFormItem>
-        <AFormItem label="密码">
-          <AInputPassword v-model:value="form.password" size="large" placeholder="请输入密码" @pressEnter="handleLogin" />
-        </AFormItem>
-        <AButton type="primary" size="large" block :loading="loading" @click="handleLogin">
+      <a-form layout="vertical">
+        <a-form-item label="管理员账号">
+          <a-input v-model:value="form.account" size="large" placeholder="请输入管理员账号" @pressEnter="handleLogin" />
+        </a-form-item>
+        <a-form-item label="密码">
+          <a-input-password v-model:value="form.password" size="large" placeholder="请输入密码" @pressEnter="handleLogin" />
+        </a-form-item>
+        <a-button type="primary" size="large" block :loading="loading" @click="handleLogin">
           登录
-        </AButton>
-      </AForm>
+        </a-button>
+      </a-form>
     </div>
   </div>
 </template>
