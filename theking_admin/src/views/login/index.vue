@@ -17,25 +17,34 @@ const userStore = useUserStore()
 const form = ref({ account: '', password: '' })
 const loading = ref(false)
 
+const rules = {
+  account: [{ required: true, message: '请输入管理员账号', trigger: 'blur' }],
+  password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
+}
+
+const formRef = ref<any>(null)
+
 const handleLogin = async () => {
-  if (!form.value.account || !form.value.password) {
-    message.error('请输入账号和密码')
-    return
-  }
-  loading.value = true
+  if (!formRef.value) return
   try {
-    const res: any = await adminLogin(form.value)
-    if (res.code === 200) {
-      userStore.setUser(res.data)
-      message.success('登录成功')
-      router.push('/dashboard')
-    } else {
-      message.error(res.message || '登录失败')
+    await formRef.value.validate()
+    loading.value = true
+    try {
+      const res: any = await adminLogin(form.value)
+      if (res.code === 200) {
+        userStore.setUser(res.data)
+        message.success('登录成功')
+        router.push('/dashboard')
+      } else {
+        message.error(res.message || '登录失败')
+      }
+    } catch (e) {
+      message.error('网络错误')
+    } finally {
+      loading.value = false
     }
   } catch (e) {
-    message.error('网络错误')
-  } finally {
-    loading.value = false
+    // 验证失败，表单会自动显示红色提示
   }
 }
 </script>
@@ -48,11 +57,11 @@ const handleLogin = async () => {
         <h2>TheKing Admin</h2>
         <p>健身管理后台</p>
       </div>
-      <AForm layout="vertical">
-        <AFormItem label="管理员账号">
+      <AForm ref="formRef" :model="form" :rules="rules" layout="vertical">
+        <AFormItem label="管理员账号" name="account">
           <AInput v-model:value="form.account" size="large" placeholder="请输入管理员账号" @pressEnter="handleLogin" />
         </AFormItem>
-        <AFormItem label="密码">
+        <AFormItem label="密码" name="password">
           <AInputPassword v-model:value="form.password" size="large" placeholder="请输入密码" @pressEnter="handleLogin" />
         </AFormItem>
         <AButton type="primary" size="large" block :loading="loading" @click="handleLogin">
