@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 import { getUserList, toggleUserStatus } from '@/api/admin'
 import { message } from 'ant-design-vue'
 
@@ -28,6 +30,13 @@ const fetchData = async () => {
     if (res.code === 200) {
       dataSource.value = res.data
       pagination.value.total = res.total
+    } else if (res.code === 401) {
+      message.error('登录已过期，请重新登录')
+      const userStore = useUserStore()
+      userStore.logout()
+      router.push('/login')
+    } else {
+      message.error(res.message || '获取用户列表失败')
     }
   } catch (e) {
     message.error('获取用户列表失败')
