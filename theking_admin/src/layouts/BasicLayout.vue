@@ -27,6 +27,10 @@ const logout = () => {
   router.push('/login')
 }
 
+const handleMenuClick = ({ key }: { key: string }) => {
+  router.push(key)
+}
+
 const menuItems = [
   { key: '/dashboard', icon: DashboardOutlined, label: '数据看板' },
   { key: '/users', icon: UserOutlined, label: '用户管理' },
@@ -41,7 +45,7 @@ const menuItems = [
         <img v-if="!collapsed" src="https://gw.alipayobjects.com/zos/rmsportal/KDpgvguMpGfqaHPjicRK.svg" alt="logo" />
         <h1 v-if="!collapsed">TheKing Admin</h1>
       </div>
-      <a-menu v-model:selectedKeys="selectedKeys" theme="dark" mode="inline">
+      <a-menu v-model:selectedKeys="selectedKeys" theme="dark" mode="inline" @click="handleMenuClick">
         <a-menu-item v-for="item in menuItems" :key="item.key">
           <component :is="item.icon" />
           <span>{{ item.label }}</span>
