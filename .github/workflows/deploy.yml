@@ -57,7 +57,7 @@ jobs:
           password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
           source: "theking_backend/target/theking-backend-0.0.1-SNAPSHOT.jar"
-          target: "/opt/theking/"
+          target: "/opt/app/"
           strip_components: 2
           overwrite: true
 
