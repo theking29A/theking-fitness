@@ -8,7 +8,9 @@ import {
   DashboardOutlined,
   UserOutlined,
   SettingOutlined,
-  LogoutOutlined
+  LogoutOutlined,
+  AppstoreOutlined,
+  FileTextOutlined
 } from '@ant-design/icons-vue'
 
 const route = useRoute()
@@ -34,6 +36,8 @@ const handleMenuClick = ({ key }: { key: string }) => {
 const menuItems = [
   { key: '/dashboard', icon: DashboardOutlined, label: '数据看板' },
   { key: '/users', icon: UserOutlined, label: '用户管理' },
+  { key: '/cms', icon: AppstoreOutlined, label: '内容管理' },
+  { key: '/logs', icon: FileTextOutlined, label: '操作日志' },
   { key: '/settings', icon: SettingOutlined, label: '系统设置' }
 ]
 </script>

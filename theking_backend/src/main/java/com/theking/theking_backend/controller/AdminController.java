@@ -9,6 +9,7 @@ import com.theking.theking_backend.repository.UserRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import com.theking.theking_backend.service.OperationLogService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -26,10 +27,21 @@ public class AdminController {
     private UserRepository userRepository;
 
     @Autowired
+    private OperationLogService operationLogService;
+
+    @Autowired
     private StringRedisTemplate redisTemplate;
 
     private static final String ADMIN_TOKEN_PREFIX = "admin:token:";
     private static final long TOKEN_EXPIRE_DAYS = 7;
+
+    private User getAdmin(String token) {
+        User admin = adminService.findByToken(token);
+        if (admin == null) {
+            throw new RuntimeException("未登录或登录已过期");
+        }
+        return admin;
+    }
 
     // ========== 管理员登录 ==========
     @PostMapping("/login")
@@ -46,6 +58,9 @@ public class AdminController {
             TimeUnit.DAYS
         );
 
+        // 记录登录日志
+        operationLogService.log(admin.getId(), admin.getAccount(), "LOGIN", "SYSTEM", null, "管理员登录");
+
         Map<String, Object> data = new HashMap<>();
         data.put("token", token);
         data.put("account", admin.getAccount());
@@ -53,17 +68,10 @@ public class AdminController {
         return Result.success(data);
     }
 
-    // ========== 验证 token ==========
-    private boolean isValidToken(String token) {
-        return Boolean.TRUE.equals(redisTemplate.hasKey(ADMIN_TOKEN_PREFIX + token));
-    }
-
     // ========== 统计数据 ==========
     @GetMapping("/stats")
     public Result<Map<String, Object>> stats(@RequestParam String token) {
-        if (!isValidToken(token)) {
-            return Result.error(401, "未登录或登录已过期");
-        }
+        getAdmin(token);
         return Result.success(adminService.getStats());
     }
 
@@ -73,21 +81,17 @@ public class AdminController {
                                    @RequestParam(defaultValue = "1") int page,
                                    @RequestParam(defaultValue = "10") int size,
                                    @RequestParam(required = false) String keyword) {
-        if (!isValidToken(token)) {
-            PageResult<User> r = new PageResult<>();
-            r.setCode(401);
-            r.setMessage("未登录或登录已过期");
-            return r;
-        }
-        return adminService.getUserList(page, size, keyword);
+        User admin = getAdmin(token);
+        PageResult<User> result = adminService.getUserList(page, size, keyword);
+        operationLogService.log(admin.getId(), admin.getAccount(), "QUERY", "USER", null, "查询用户列表，页码:" + page);
+        return result;
     }
 
     // ========== 用户详情 ==========
     @GetMapping("/users/{id}")
     public Result<User> userDetail(@RequestParam String token, @PathVariable Long id) {
-        if (!isValidToken(token)) {
-            return Result.error(401, "未登录或登录已过期");
-        }
+        User admin = getAdmin(token);
+        operationLogService.log(admin.getId(), admin.getAccount(), "QUERY", "USER", id.toString(), "查看用户详情");
         return userRepository.findById(id)
                 .map(Result::success)
                 .orElse(Result.error(404, "用户不存在"));
@@ -96,16 +100,20 @@ public class AdminController {
     // ========== 修改用户状态（禁用/启用） ==========
     @PutMapping("/users/{id}/status")
     public Result<Void> toggleStatus(@RequestParam String token, @PathVariable Long id) {
-        if (!isValidToken(token)) {
-            return Result.error(401, "未登录或登录已过期");
-        }
-        return adminService.toggleUserStatus(id);
+        User admin = getAdmin(token);
+        Result<Void> result = adminService.toggleUserStatus(id);
+        operationLogService.log(admin.getId(), admin.getAccount(), "UPDATE", "USER", id.toString(), "修改用户状态");
+        return result;
     }
 
     // ========== 注销 ==========
     @PostMapping("/logout")
     public Result<Void> logout(@RequestParam String token) {
+        User admin = adminService.findByToken(token);
         redisTemplate.delete(ADMIN_TOKEN_PREFIX + token);
+        if (admin != null) {
+            operationLogService.log(admin.getId(), admin.getAccount(), "LOGOUT", "SYSTEM", null, "管理员登出");
+        }
         return Result.success();
     }
 }

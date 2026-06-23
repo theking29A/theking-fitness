@@ -23,6 +23,25 @@ public class AdminService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private org.springframework.data.redis.core.StringRedisTemplate redisTemplate;
+
+    private static final String ADMIN_TOKEN_PREFIX = "admin:token:";
+
+    /**
+     * 根据 token 查找管理员
+     */
+    public User findByToken(String token) {
+        if (token == null || token.isEmpty()) {
+            return null;
+        }
+        String account = redisTemplate.opsForValue().get(ADMIN_TOKEN_PREFIX + token);
+        if (account == null) {
+            return null;
+        }
+        return userRepository.findByAccount(account).orElse(null);
+    }
+
     /**
      * 管理员登录：验证账号密码，且必须是 ADMIN 角色
      */
@@ -43,14 +62,14 @@ public class AdminService {
     public Map<String, Object> getStats() {
         long totalUsers = userRepository.count();
         long adminCount = userRepository.countByRole(User.Role.ADMIN);
+        long todayRegister = userRepository.countByCreatedAtGreaterThanEqual(
+                java.time.LocalDateTime.now().toLocalDate().atStartOfDay());
 
-        // 今日注册（假设 createdAt 不存在，用 id 近似或全量返回）
-        // 由于 User 没有 createdAt 字段，先简单统计
         Map<String, Object> stats = new HashMap<>();
         stats.put("totalUsers", totalUsers);
         stats.put("adminCount", adminCount);
         stats.put("userCount", totalUsers - adminCount);
-        stats.put("todayRegister", 0); // 后续加 createdAt 字段后可完善
+        stats.put("todayRegister", todayRegister);
         return stats;
     }
 

@@ -26,6 +26,18 @@ const routes = [
         meta: { title: '用户管理', icon: 'UserOutlined' }
       },
       {
+        path: 'cms',
+        name: 'Cms',
+        component: () => import('@/views/cms/index.vue'),
+        meta: { title: '内容管理', icon: 'AppstoreOutlined' }
+      },
+      {
+        path: 'logs',
+        name: 'Logs',
+        component: () => import('@/views/logs/index.vue'),
+        meta: { title: '操作日志', icon: 'FileTextOutlined' }
+      },
+      {
         path: 'settings',
         name: 'Settings',
         component: () => import('@/views/settings/index.vue'),
