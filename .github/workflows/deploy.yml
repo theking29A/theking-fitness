@@ -44,7 +44,7 @@ jobs:
       - name: Build Admin Frontend
         run: |
           cd theking_admin
-          npm ci
+          npm install
           npm run build
           echo "Admin build success, dist files:"
           ls -la dist/
