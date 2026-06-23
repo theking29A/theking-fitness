@@ -1,8 +1,11 @@
 package com.theking.theking_backend.controller;
 
+import com.theking.theking_backend.common.Result;
+import com.theking.theking_backend.dto.*;
 import com.theking.theking_backend.service.AuthService;
 import com.theking.theking_backend.util.CaptchaUtil;
 import com.theking.theking_backend.util.CodeStore;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,30 +24,21 @@ public class AuthController {
 
     // ========== 登录 ==========
     @PostMapping("/login")
-    public Map<String, Object> login(@RequestBody Map<String, String> loginData) {
-        String account = loginData.get("account");
-        String password = loginData.get("password");
-
-        System.out.println("收到登录请求: 账号=" + account);
-
-        Map<String, Object> response = new HashMap<>();
-        String token = authService.login(account, password);
+    public Result<Map<String, Object>> login(@Valid @RequestBody LoginRequest request) {
+        String token = authService.login(request.getAccount(), request.getPassword());
 
         if (token != null) {
-            response.put("code", 200);
-            response.put("message", "登录成功");
-            response.put("token", token);
+            Map<String, Object> data = new HashMap<>();
+            data.put("token", token);
+            return Result.success(data);
         } else {
-            response.put("code", 401);
-            response.put("message", "账号或密码错误");
+            return Result.error(401, "账号或密码错误");
         }
-        return response;
     }
 
     // ========== 图形验证码（防机器注册） ==========
     @GetMapping("/captcha")
-    public Map<String, Object> getCaptcha() {
-        Map<String, Object> response = new HashMap<>();
+    public Result<Map<String, Object>> getCaptcha() {
         try {
             String code = CaptchaUtil.generateCode(4);
             String captchaId = UUID.randomUUID().toString();
@@ -52,76 +46,44 @@ public class AuthController {
             System.out.println("【图形验证码】captchaId=" + captchaId + ", 验证码=" + code);
             String imgBase64 = CaptchaUtil.generateBase64Image(code);
 
-            response.put("code", 200);
-            response.put("captchaId", captchaId);
-            response.put("image", imgBase64);
+            Map<String, Object> data = new HashMap<>();
+            data.put("captchaId", captchaId);
+            data.put("image", imgBase64);
+            return Result.success(data);
         } catch (IOException e) {
-            response.put("code", 500);
-            response.put("message", "验证码生成失败");
+            return Result.error(500, "验证码生成失败");
         }
-        return response;
     }
 
     // ========== 发送邮箱验证码（忘记密码用） ==========
     @PostMapping("/send-code")
-    public Map<String, Object> sendCode(@RequestBody Map<String, String> data) {
-        String account = data.get("account");
-        String email = data.get("email");
-        String type = data.get("type"); // "register" 或 "forgot"
-
-        Map<String, Object> response = new HashMap<>();
-
-        if (account == null || account.isEmpty() || email == null || email.isEmpty()) {
-            response.put("code", 400);
-            response.put("message", "账号和邮箱不能为空");
-            return response;
-        }
-
+    public Result<Void> sendCode(@Valid @RequestBody SendCodeRequest request) {
         // 生成6位数字验证码
         String code = String.format("%06d", (int)(Math.random() * 1000000));
-        CodeStore.put(type, account, code);
+        CodeStore.put(request.getType(), request.getAccount(), code);
 
         // 【注意】这里只是模拟发送，实际应该调用邮件服务
-        System.out.println("【模拟发送验证码】类型=" + type + ", 账号=" + account + ", 邮箱=" + email + ", 验证码=" + code);
+        System.out.println("【模拟发送验证码】类型=" + request.getType() + ", 账号=" + request.getAccount() + ", 邮箱=" + request.getEmail() + ", 验证码=" + code);
 
-        response.put("code", 200);
-        response.put("message", "验证码已发送（请查看控制台日志）");
         // 开发模式下把验证码返回给前端，方便测试
-        response.put("debugCode", code);
-        return response;
+        return Result.success();
     }
 
     // ========== 注册 ==========
     @PostMapping("/register")
-    public Map<String, Object> register(@RequestBody Map<String, String> data) {
-        String account = data.get("account");
-        String password = data.get("password");
-        String email = data.get("email");
-        String captchaId = data.get("captchaId");
-        String captchaCode = data.get("captchaCode");
-
-        Map<String, Object> response = new HashMap<>();
-
+    public Result<Void> register(@Valid @RequestBody RegisterRequest request) {
         // 1. 校验图形验证码
-        if (captchaId == null || captchaCode == null ||
-            !CodeStore.verify("captcha", captchaId, captchaCode)) {
-            response.put("code", 400);
-            response.put("message", "图形验证码错误或已过期");
-            return response;
+        if (!CodeStore.verify("captcha", request.getCaptchaId(), request.getCaptchaCode())) {
+            return Result.error(400, "图形验证码错误或已过期");
         }
 
         // 2. 调用注册逻辑
-        return authService.register(account, password, email);
+        return authService.register(request.getAccount(), request.getPassword(), request.getEmail());
     }
 
     // ========== 忘记密码 / 重置密码 ==========
     @PostMapping("/reset-password")
-    public Map<String, Object> resetPassword(@RequestBody Map<String, String> data) {
-        String account = data.get("account");
-        String email = data.get("email");
-        String code = data.get("code");
-        String newPassword = data.get("newPassword");
-
-        return authService.resetPassword(account, email, code, newPassword);
+    public Result<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        return authService.resetPassword(request.getAccount(), request.getEmail(), request.getCode(), request.getNewPassword());
     }
 }
