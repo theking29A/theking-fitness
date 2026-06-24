@@ -47,6 +47,22 @@ const columns = [
   { title: '操作', key: 'action', width: 180 }
 ]
 
+const recordColumns = [
+  { title: '动作ID', dataIndex: 'exerciseId', width: 80 },
+  { title: '完成组数', dataIndex: 'setsCompleted', width: 80 },
+  { title: '次数', dataIndex: 'repsCompleted', width: 80 },
+  { title: '时长(秒)', dataIndex: 'durationSeconds', width: 100 },
+  { title: '卡路里', dataIndex: 'caloriesBurned', width: 80 },
+  { title: '完成时间', dataIndex: 'completedAt', width: 160 }
+]
+
+const activityColumns = [
+  { title: '活动类型', dataIndex: 'activityType', width: 120 },
+  { title: '对象ID', dataIndex: 'targetId', width: 80 },
+  { title: 'IP', dataIndex: 'ipAddress', width: 120 },
+  { title: '时间', dataIndex: 'createdAt', width: 160 }
+]
+
 const fetchData = async () => {
   loading.value = true
   try {
@@ -203,38 +219,32 @@ onMounted(fetchData)
 
         <h3 style="margin-top: 24px">最近训练记录</h3>
         <ATable
+          :columns="recordColumns"
           :data-source="userRecords"
           row-key="id"
           :pagination="false"
           size="small"
         >
-          <ATable.Column title="动作ID" data-index="exerciseId" width="80" />
-          <ATable.Column title="完成组数" data-index="setsCompleted" width="80" />
-          <ATable.Column title="次数" data-index="repsCompleted" width="80" />
-          <ATable.Column title="时长(秒)" data-index="durationSeconds" width="100" />
-          <ATable.Column title="卡路里" data-index="caloriesBurned" width="80" />
-          <ATable.Column title="完成时间" data-index="completedAt" width="160">
-            <template #default="{ text }">
+          <template #bodyCell="{ column, text }">
+            <template v-if="column.dataIndex === 'completedAt'">
               {{ text ? text.replace('T', ' ').substring(0, 19) : '-' }}
             </template>
-          </ATable.Column>
+          </template>
         </ATable>
 
         <h3 style="margin-top: 24px">最近活动</h3>
         <ATable
+          :columns="activityColumns"
           :data-source="userActivities"
           row-key="id"
           :pagination="false"
           size="small"
         >
-          <ATable.Column title="活动类型" data-index="activityType" width="120" />
-          <ATable.Column title="对象ID" data-index="targetId" width="80" />
-          <ATable.Column title="IP" data-index="ipAddress" width="120" />
-          <ATable.Column title="时间" data-index="createdAt" width="160">
-            <template #default="{ text }">
+          <template #bodyCell="{ column, text }">
+            <template v-if="column.dataIndex === 'createdAt'">
               {{ text ? text.replace('T', ' ').substring(0, 19) : '-' }}
             </template>
-          </ATable.Column>
+          </template>
         </ATable>
       </ASpin>
     </AModal>
