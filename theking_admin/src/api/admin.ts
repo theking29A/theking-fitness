@@ -166,12 +166,26 @@ export function getUserFavoriteExercises(id: number | string) {
   return request.get(`/admin/users/${id}/favorite-exercises`)
 }
 
-// ========== File Upload 文件上传 ==========
+// ========== System Settings 系统设置 ==========
 
-export function uploadFile(file: File) {
-  const formData = new FormData()
-  formData.append('file', file)
-  return request.post('/admin/upload', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  })
+export function getAllSettings() {
+  return request.get('/admin/settings/all')
+}
+
+export function getSettingsByCategory(category: string) {
+  return request.get(`/admin/settings/category/${category}`)
+}
+
+export function updateSetting(key: string, value: string) {
+  return request.post('/admin/settings/update', { key, value })
+}
+
+export function batchUpdateSettings(settings: Record<string, string>) {
+  return request.post('/admin/settings/batch-update', settings)
+}
+
+// ========== Public API 公共接口 ==========
+
+export function getMaintenanceStatus() {
+  return request.get('/maintenance-status')
 }
