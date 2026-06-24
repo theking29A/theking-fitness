@@ -189,3 +189,13 @@ export function batchUpdateSettings(settings: Record<string, string>) {
 export function getMaintenanceStatus() {
   return request.get('/maintenance-status')
 }
+
+// ========== File Upload 文件上传 ==========
+
+export function uploadFile(file: File) {
+  const formData = new FormData()
+  formData.append('file', file)
+  return request.post('/admin/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+}
