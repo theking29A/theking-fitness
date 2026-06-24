@@ -50,23 +50,28 @@ const handleLogin = async () => {
 
 <template>
   <div class="login-container">
-    <div class="login-box">
-      <div class="login-header">
-        <img src="https://gw.alipayobjects.com/zos/rmsportal/KDpgvguMpGfqaHPjicRK.svg" alt="logo" />
-        <h2>TheKing Admin</h2>
-        <p>健身管理后台</p>
+    <div class="login-left">
+      <!-- 图片区域 -->
+    </div>
+    <div class="login-right">
+      <div class="login-box">
+        <div class="login-header">
+          <img src="https://gw.alipayobjects.com/zos/rmsportal/KDpgvguMpGfqaHPjicRK.svg" alt="logo" />
+          <h2>TheKing Admin</h2>
+          <p>健身管理后台</p>
+        </div>
+        <AForm ref="formRef" :model="form" :rules="rules" layout="vertical">
+          <AFormItem label="管理员账号" name="account">
+            <AInput v-model:value="form.account" size="large" placeholder="请输入管理员账号" @pressEnter="handleLogin" />
+          </AFormItem>
+          <AFormItem label="密码" name="password">
+            <AInputPassword v-model:value="form.password" size="large" placeholder="请输入密码" @pressEnter="handleLogin" />
+          </AFormItem>
+          <AButton type="primary" size="large" block :loading="loading" @click="handleLogin">
+            登录
+          </AButton>
+        </AForm>
       </div>
-      <AForm ref="formRef" :model="form" :rules="rules" layout="vertical">
-        <AFormItem label="管理员账号" name="account">
-          <AInput v-model:value="form.account" size="large" placeholder="请输入管理员账号" @pressEnter="handleLogin" />
-        </AFormItem>
-        <AFormItem label="密码" name="password">
-          <AInputPassword v-model:value="form.password" size="large" placeholder="请输入密码" @pressEnter="handleLogin" />
-        </AFormItem>
-        <AButton type="primary" size="large" block :loading="loading" @click="handleLogin">
-          登录
-        </AButton>
-      </AForm>
     </div>
   </div>
 </template>
@@ -75,25 +80,33 @@ const handleLogin = async () => {
 .login-container {
   height: 100vh;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  /* 背景图片：完整显示，不裁切，居中 */
+}
+
+.login-left {
+  flex: 1.1;
   background-image: url('/login-bg.png');
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
-  background-color: #1a1a2e; /* 图片边缘外的深色兜底 */
+  background-color: #1a1a2e;
+}
+
+.login-right {
+  flex: 0.9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
 }
 
 .login-box {
   width: 400px;
   padding: 40px;
   border-radius: 16px;
-  /* 毛玻璃效果 */
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
@@ -123,14 +136,14 @@ const handleLogin = async () => {
   font-size: 14px;
 }
 
-/* 覆盖 Ant Design 表单样式，适配深色毛玻璃背景 */
+/* 覆盖 Ant Design 表单样式 */
 .login-box :deep(.ant-form-item-label > label) {
   color: rgba(255, 255, 255, 0.85);
 }
 
 .login-box :deep(.ant-input) {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
   color: #fff;
 }
 
@@ -139,8 +152,8 @@ const handleLogin = async () => {
 }
 
 .login-box :deep(.ant-input-password) {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .login-box :deep(.ant-input-password .ant-input) {
@@ -157,14 +170,22 @@ const handleLogin = async () => {
   background: linear-gradient(135deg, #768ef0 0%, #865bb2 100%);
 }
 
-/* 移动端适配 */
-@media (max-width: 576px) {
+/* 移动端：上下堆叠 */
+@media (max-width: 768px) {
+  .login-container {
+    flex-direction: column;
+  }
+  .login-left {
+    flex: none;
+    height: 35vh;
+    background-size: cover;
+  }
+  .login-right {
+    flex: 1;
+  }
   .login-box {
     width: 90%;
     padding: 28px 20px;
-  }
-  .login-container {
-    background-size: cover; /* 小屏幕用 cover 填满 */
   }
 }
 </style>
