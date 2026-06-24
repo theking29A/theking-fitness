@@ -32,6 +32,12 @@ const routes = [
         meta: { title: '内容管理', icon: 'AppstoreOutlined' }
       },
       {
+        path: 'announcements',
+        name: 'Announcements',
+        component: () => import('@/views/announcements/index.vue'),
+        meta: { title: '公告管理', icon: 'NotificationOutlined' }
+      },
+      {
         path: 'logs',
         name: 'Logs',
         component: () => import('@/views/logs/index.vue'),

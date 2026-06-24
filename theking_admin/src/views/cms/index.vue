@@ -1,16 +1,17 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import {
   Table, Button, Modal, Form, Input, Select, Tag, Space, Tabs, Card,
-  message, Pagination, Popconfirm, Switch, Image
+  message, Pagination, Popconfirm, Switch, Upload
 } from 'ant-design-vue'
 import {
-  PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined
+  PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined
 } from '@ant-design/icons-vue'
 import {
   getExerciseList, createExercise, updateExercise, deleteExercise,
   toggleExerciseStatus, getPlanList, createPlan, updatePlan,
-  deletePlan, togglePlanStatus, getPlanExercises, setPlanExercises
+  deletePlan, togglePlanStatus, getPlanExercises, setPlanExercises,
+  uploadFile
 } from '@/api/admin'
 
 const ATable = Table
@@ -28,6 +29,7 @@ const ATabPane = Tabs.TabPane
 const ACard = Card
 const APagination = Pagination
 const ASwitch = Switch
+const AUpload = Upload
 const AImage = Image
 const APopconfirm = Popconfirm
 
@@ -145,7 +147,29 @@ function handleToggleExercise(id: number) {
   })
 }
 
-// ========== 计划管理 ==========
+// ========== 文件上传 ==========
+const uploadingImage = ref(false)
+const uploadingVideo = ref(false)
+
+function handleUpload(file: File, type: 'image' | 'video', formRef: any, field: string) {
+  if (type === 'image') uploadingImage.value = true
+  else uploadingVideo.value = true
+
+  uploadFile(file).then((res: any) => {
+    if (res.code === 200) {
+      message.success('上传成功')
+      formRef[field] = res.data.url
+    } else {
+      message.error(res.message || '上传失败')
+    }
+  }).catch(() => {
+    message.error('上传失败')
+  }).finally(() => {
+    if (type === 'image') uploadingImage.value = false
+    else uploadingVideo.value = false
+  })
+  return false // 阻止默认上传
+}
 const planList = ref<any[]>([])
 const planPage = ref(1)
 const planPageSize = ref(10)
@@ -419,9 +443,25 @@ onMounted(() => {
         </AFormItem>
         <AFormItem label="视频URL" name="videoUrl">
           <AInput v-model:value="exerciseForm.videoUrl" />
+          <AUpload
+            :before-upload="(file: File) => handleUpload(file, 'video', exerciseForm, 'videoUrl')"
+            :show-upload-list="false"
+          >
+            <AButton size="small" :loading="uploadingVideo">
+              <UploadOutlined /> 上传视频
+            </AButton>
+          </AUpload>
         </AFormItem>
         <AFormItem label="图片URL" name="imageUrl">
           <AInput v-model:value="exerciseForm.imageUrl" />
+          <AUpload
+            :before-upload="(file: File) => handleUpload(file, 'image', exerciseForm, 'imageUrl')"
+            :show-upload-list="false"
+          >
+            <AButton size="small" :loading="uploadingImage">
+              <UploadOutlined /> 上传图片
+            </AButton>
+          </AUpload>
         </AFormItem>
         <AFormItem label="动作要点" name="tips">
           <AInput.TextArea v-model:value="exerciseForm.tips" :rows="3" />
@@ -480,6 +520,14 @@ onMounted(() => {
         </AFormItem>
         <AFormItem label="封面图片" name="coverImage">
           <AInput v-model:value="planForm.coverImage" />
+          <AUpload
+            :before-upload="(file: File) => handleUpload(file, 'image', planForm, 'coverImage')"
+            :show-upload-list="false"
+          >
+            <AButton size="small" :loading="uploadingImage">
+              <UploadOutlined /> 上传图片
+            </AButton>
+          </AUpload>
         </AFormItem>
         <AFormItem label="单次时长（分钟）" name="estimatedTimeMin">
           <AInput v-model:value="planForm.estimatedTimeMin" type="number" />

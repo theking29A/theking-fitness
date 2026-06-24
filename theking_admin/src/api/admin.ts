@@ -117,3 +117,61 @@ export function getLogList(params: { page?: number; size?: number }) {
 export function getMyLogs(params: { page?: number; size?: number }) {
   return request.get('/admin/logs/my', { params })
 }
+
+// ========== Announcements 公告管理 ==========
+
+export function getAnnouncementList(params: { page?: number; size?: number }) {
+  return request.get('/admin/announcements/list', { params })
+}
+
+export function getActiveAnnouncements() {
+  return request.get('/admin/announcements/active')
+}
+
+export function createAnnouncement(data: any) {
+  return request.post('/admin/announcements', data)
+}
+
+export function updateAnnouncement(id: number | string, data: any) {
+  return request.put(`/admin/announcements/${id}`, data)
+}
+
+export function deleteAnnouncement(id: number | string) {
+  return request.delete(`/admin/announcements/${id}`)
+}
+
+export function toggleAnnouncementStatus(id: number | string) {
+  return request.post(`/admin/announcements/${id}/toggle`)
+}
+
+// ========== User Profile 用户详情 ==========
+
+export function getUserProfile(id: number | string) {
+  return request.get(`/admin/users/${id}/profile`)
+}
+
+export function getUserActivities(id: number | string) {
+  return request.get(`/admin/users/${id}/activities`)
+}
+
+export function getUserTrainingRecords(id: number | string, params: { page?: number; size?: number }) {
+  return request.get(`/admin/users/${id}/training-records`, { params })
+}
+
+export function getUserDailyStats(id: number | string, days: number = 30) {
+  return request.get(`/admin/users/${id}/daily-stats`, { params: { days } })
+}
+
+export function getUserFavoriteExercises(id: number | string) {
+  return request.get(`/admin/users/${id}/favorite-exercises`)
+}
+
+// ========== File Upload 文件上传 ==========
+
+export function uploadFile(file: File) {
+  const formData = new FormData()
+  formData.append('file', file)
+  return request.post('/admin/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+}

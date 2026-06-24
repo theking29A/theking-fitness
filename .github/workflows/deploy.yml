@@ -91,12 +91,21 @@ jobs:
           password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
           script: |
+            # 创建上传目录
+            mkdir -p /opt/app/uploads
+            chmod 755 /opt/app/uploads
+
+            # 重启后端
             systemctl restart theking
             systemctl status theking --no-pager
+
+            # 部署前端
             rm -rf /usr/share/nginx/html/*
             tar xzf /tmp/frontend.tar.gz -C /usr/share/nginx/html/
             mkdir -p /usr/share/nginx/html/admin
             tar xzf /tmp/admin.tar.gz -C /usr/share/nginx/html/admin/
+
+            # 配置 Nginx
             cat > /etc/nginx/conf.d/admin.conf << 'EOF'
             location /admin {
                 alias /usr/share/nginx/html/admin;
@@ -104,5 +113,16 @@ jobs:
                 try_files $uri $uri/ =404;
             }
             EOF
+
+            # 配置文件上传静态访问
+            cat > /etc/nginx/conf.d/uploads.conf << 'EOF'
+            location /uploads {
+                alias /opt/app/uploads;
+                autoindex off;
+                expires 30d;
+                add_header Cache-Control "public, immutable";
+            }
+            EOF
+
             nginx -t && systemctl reload nginx
             echo "Deploy completed!"
