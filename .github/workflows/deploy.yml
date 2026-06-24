@@ -33,7 +33,7 @@ jobs:
       - name: Build Frontend
         run: |
           cd theking-fitness-vue
-          npm ci
+          npm install
           npm run build-only
 
       - name: Build Admin Frontend
@@ -84,7 +84,7 @@ jobs:
           overwrite: true
 
       - name: Restart & Deploy Server
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
