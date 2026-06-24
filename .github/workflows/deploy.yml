@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          token: ${{ github.token }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -84,7 +86,7 @@ jobs:
           overwrite: true
 
       - name: Restart & Deploy Server
-        uses: appleboy/ssh-action@v1.2.0
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
