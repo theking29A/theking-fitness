@@ -5,7 +5,6 @@ import { useUserStore } from '@/stores/user'
 import { adminLogin } from '@/api/admin'
 import { Form, Input, Button, message } from 'ant-design-vue'
 
-// 显式声明组件，Vue 3 <script setup> 会自动注册为局部组件
 const AForm = Form
 const AFormItem = Form.Item
 const AInput = Input
@@ -44,7 +43,7 @@ const handleLogin = async () => {
       loading.value = false
     }
   } catch (e) {
-    // 验证失败，表单会自动显示红色提示
+    // 验证失败
   }
 }
 </script>
@@ -78,32 +77,94 @@ const handleLogin = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* 背景图片：完整显示，不裁切，居中 */
+  background-image: url('/login-bg.png');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #1a1a2e; /* 图片边缘外的深色兜底 */
 }
+
 .login-box {
   width: 400px;
   padding: 40px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  border-radius: 16px;
+  /* 毛玻璃效果 */
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
+
 .login-header {
   text-align: center;
   margin-bottom: 32px;
 }
+
 .login-header img {
   width: 56px;
   height: 56px;
   margin-bottom: 12px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
 }
+
 .login-header h2 {
   font-size: 24px;
   font-weight: 600;
   margin: 0 0 4px 0;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
+
 .login-header p {
-  color: #999;
+  color: rgba(255, 255, 255, 0.75);
   margin: 0;
   font-size: 14px;
+}
+
+/* 覆盖 Ant Design 表单样式，适配深色毛玻璃背景 */
+.login-box :deep(.ant-form-item-label > label) {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.login-box :deep(.ant-input) {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+.login-box :deep(.ant-input::placeholder) {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.login-box :deep(.ant-input-password) {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.login-box :deep(.ant-input-password .ant-input) {
+  color: #fff;
+}
+
+.login-box :deep(.ant-btn-primary) {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.login-box :deep(.ant-btn-primary:hover) {
+  background: linear-gradient(135deg, #768ef0 0%, #865bb2 100%);
+}
+
+/* 移动端适配 */
+@media (max-width: 576px) {
+  .login-box {
+    width: 90%;
+    padding: 28px 20px;
+  }
+  .login-container {
+    background-size: cover; /* 小屏幕用 cover 填满 */
+  }
 }
 </style>
