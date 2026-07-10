@@ -199,3 +199,19 @@ export function uploadFile(file: File) {
     headers: { 'Content-Type': 'multipart/form-data' }
   })
 }
+
+// ========== AI 预测接口 ==========
+
+export function predictWeight(history: number[]) {
+  return request.post('/ai/predict-weight', { history })
+}
+
+export function predictCalories(data: {
+  weight: number
+  height: number
+  age: number
+  gender: string
+  activity: string
+}) {
+  return request.post('/ai/predict-calories', data)
+}

@@ -2,6 +2,7 @@ package com.theking.theking_backend.controller;
 
 import com.theking.theking_backend.common.Result;
 import com.theking.theking_backend.dto.WeightPredictionRequest;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -13,7 +14,8 @@ import java.util.Map;
 @RequestMapping("/api/ai")
 public class AiController {
 
-    private final String AI_SERVICE_URL = "http://localhost:8000";
+    @Value("${ai.service.url:http://120.24.236.105:8000}")
+    private String aiServiceUrl;
     private final RestTemplate restTemplate = new RestTemplate();
 
     @PostMapping("/predict-weight")
@@ -29,7 +31,7 @@ public class AiController {
 
             // 调用 Django AI 服务
             ResponseEntity<Map> response = restTemplate.postForEntity(
-                AI_SERVICE_URL + "/predict/weight/",
+                aiServiceUrl + "/predict/weight/",
                 entity,
                 Map.class
             );
