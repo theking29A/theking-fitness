@@ -26,28 +26,28 @@ jobs:
 
       - name: Build Backend
         run: |
-          cd theking_backend
+          cd thekingfitnessvue/theking_backend
           chmod +x mvnw
           ./mvnw clean package -DskipTests
 
       - name: Build Frontend
         run: |
-          cd theking-fitness-vue
+          cd thekingfitnessvue/theking-fitness-vue
           npm install
           npm run build-only
 
       - name: Build Admin Frontend
         run: |
-          cd theking_admin
+          cd thekingfitnessvue/theking_admin
           npm install
           npm run build
 
       - name: Tar Frontend Artifacts
         run: |
-          cd theking-fitness-vue/dist
-          tar czf ../../frontend.tar.gz .
-          cd ../../theking_admin/dist
-          tar czf ../../admin.tar.gz .
+          cd thekingfitnessvue/theking-fitness-vue/dist
+          tar czf ../../../frontend.tar.gz .
+          cd ../../../thekingfitnessvue/theking_admin/dist
+          tar czf ../../../admin.tar.gz .
 
       - name: Deploy Backend JAR
         uses: appleboy/scp-action@v0.1.7
@@ -56,9 +56,9 @@ jobs:
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
-          source: "theking_backend/target/theking-backend-0.0.1-SNAPSHOT.jar"
+          source: "thekingfitnessvue/theking_backend/target/theking-backend-0.0.1-SNAPSHOT.jar"
           target: "/opt/app/"
-          strip_components: 2
+          strip_components: 3
           overwrite: true
 
       - name: Deploy Frontend Tar

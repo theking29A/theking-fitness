@@ -1989,18 +1989,6 @@
             }
         });
 
-        // ========== 用户活动埋点 ==========
-        (function() {
-            // 页面加载时记录 VIEW_EXERCISE 活动（匿名用户，userId=1 表示访客）
-            fetch('/api/activity', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    userId: 1,  // 访客用户ID，实际项目中应使用真实登录用户ID
-                    activityType: 'VIEW_EXERCISE'
-                })
-            }).catch(() => {}); // 静默失败，不影响页面
-        })();
     </script>
 </body>
 </html>
