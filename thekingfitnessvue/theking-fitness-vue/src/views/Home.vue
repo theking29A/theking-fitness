@@ -266,6 +266,41 @@
           <p v-if="isLoggedIn && userProfile.height" class="stats-note">* 今日 TDEE = BMR × 1.2 + 今日所选模板消耗 (若未选择视为休息日)</p>
         </div>
 
+        <!-- AI 体重预测 -->
+        <div class="stats-card">
+          <div class="card-header">
+            <h3>🤖 AI 体重趋势预测</h3>
+            <button class="btn-primary-small" @click="loadWeightPrediction">刷新预测</button>
+          </div>
+          <div v-if="weightPrediction.loading" class="empty-state">
+            <p>AI 分析中...</p>
+          </div>
+          <div v-else-if="weightPrediction.error" class="empty-state">
+            <p>{{ weightPrediction.error }}</p>
+          </div>
+          <div v-else-if="weightPrediction.data" class="prediction-result">
+            <div class="prediction-main">
+              <div class="prediction-item">
+                <div class="prediction-value">{{ weightPrediction.data.currentWeight }}</div>
+                <div class="prediction-label">当前体重 (kg)</div>
+              </div>
+              <div class="prediction-arrow">→</div>
+              <div class="prediction-item">
+                <div class="prediction-value" :class="weightPrediction.data.trend">{{ weightPrediction.data.predictedWeight }}</div>
+                <div class="prediction-label">预测明天 (kg)</div>
+              </div>
+            </div>
+            <div class="prediction-change" :class="weightPrediction.data.trend">
+              {{ weightPrediction.data.trend === 'up' ? '↑' : '↓' }} 
+              {{ Math.abs(weightPrediction.data.change) }} kg
+            </div>
+            <p class="prediction-hint">基于 {{ weightHistory.length }} 天历史数据，由 TensorFlow LSTM 模型分析</p>
+          </div>
+          <div v-else class="empty-state">
+            <p>记录体重后，AI 将为您预测趋势</p>
+          </div>
+        </div>
+
         <div class="stats-card">
           <div class="card-header">
             <h3>🏋️ 我的训练模板库</h3>
@@ -706,6 +741,69 @@ const registerForm = reactive({ account: '', password: '', confirmPassword: '', 
 const captchaImage = ref('')
 const forgotForm = reactive({ account: '', email: '', code: '', newPassword: '', confirmPassword: '' })
 const codeCountdown = ref(0)
+
+// AI 体重预测相关
+const weightHistory = ref<number[]>([])
+const weightPrediction = reactive({
+  loading: false,
+  error: '',
+  data: null as any
+})
+
+const loadWeightPrediction = async () => {
+  // 从本地存储加载历史体重数据（模拟数据，实际应从后端获取）
+  const stored = localStorage.getItem('theking_weight_history')
+  if (stored) {
+    weightHistory.value = JSON.parse(stored)
+  } else {
+    // 生成模拟数据用于演示
+    weightHistory.value = generateMockWeightData()
+    localStorage.setItem('theking_weight_history', JSON.stringify(weightHistory.value))
+  }
+  
+  if (weightHistory.value.length < 7) {
+    weightPrediction.error = '需要至少7天的体重记录'
+    return
+  }
+  
+  weightPrediction.loading = true
+  weightPrediction.error = ''
+  
+  try {
+    const token = localStorage.getItem('theking_token')
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+    if (token) headers['Authorization'] = 'Bearer ' + token
+    
+    const response = await fetch(`${API_BASE}/api/ai/predict-weight`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ history: weightHistory.value })
+    })
+    
+    const result = await response.json()
+    if (result.code === 200) {
+      weightPrediction.data = result.data
+    } else {
+      weightPrediction.error = result.message || '预测失败'
+    }
+  } catch (e) {
+    weightPrediction.error = '网络错误，请稍后重试'
+    console.error('体重预测失败:', e)
+  } finally {
+    weightPrediction.loading = false
+  }
+}
+
+const generateMockWeightData = () => {
+  // 生成30天模拟体重数据（缓慢下降趋势）
+  const data: number[] = []
+  let weight = 75.0
+  for (let i = 0; i < 30; i++) {
+    weight += (Math.random() - 0.6) * 0.5  // 总体缓慢下降
+    data.push(Math.round(weight * 10) / 10)
+  }
+  return data
+}
 
 const API_BASE = 'http://120.24.236.105'
 
@@ -1377,6 +1475,11 @@ const showPage = (pageName: string) => {
   activePage.value = pageName
   isMenuOpen.value = false
   window.scrollTo(0, 0)
+  
+  // 切换到数据面板时自动加载 AI 预测
+  if (pageName === 'stats') {
+    loadWeightPrediction()
+  }
 }
 
 const toggleCompleted = (key: string, event: Event) => {
@@ -1989,4 +2092,22 @@ body.dark-theme .btn-send-code { background: #1c1c1e; }
   .rest-table { min-width: 500px; }
   .routine-actions { flex-direction: column; align-items: flex-end; gap: 6px; }
 }
+
+/* ========== AI 体重预测样式 ========== */
+.prediction-result { padding: 16px 0; }
+.prediction-main { display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 16px; }
+.prediction-item { text-align: center; }
+.prediction-value { font-size: 32px; font-weight: 700; color: #1d1d1f; }
+.prediction-value.up { color: #ff3b30; }
+.prediction-value.down { color: #34c759; }
+.prediction-label { font-size: 13px; color: #86868b; margin-top: 4px; }
+.prediction-arrow { font-size: 24px; color: #c7c7cc; }
+.prediction-change { text-align: center; font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+.prediction-change.up { color: #ff3b30; }
+.prediction-change.down { color: #34c759; }
+.prediction-hint { text-align: center; font-size: 12px; color: #86868b; margin-top: 12px; }
+body.dark-theme .prediction-value { color: #fff; }
+body.dark-theme .prediction-label { color: #8e8e93; }
+body.dark-theme .prediction-arrow { color: #555; }
+body.dark-theme .prediction-hint { color: #8e8e93; }
 </style>
