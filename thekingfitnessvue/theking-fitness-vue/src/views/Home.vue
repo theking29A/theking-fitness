@@ -579,7 +579,7 @@
 
         <div class="auth-tabs">
           <div class="auth-tab" :class="{ active: authTab === 'login' }" @click="authTab = 'login'">登录</div>
-          <div class="auth-tab" :class="{ active: authTab === 'register' }" @click="authTab = 'register'">注册</div>
+          <div class="auth-tab" :class="{ active: authTab === 'register' }" @click="authTab = 'register'; refreshCaptcha()">注册</div>
           <div class="auth-tab" :class="{ active: authTab === 'forgot' }" @click="authTab = 'forgot'">忘记密码</div>
         </div>
 
@@ -773,15 +773,21 @@ const trackActivity = async (activityType: string) => {
 }
 
 const refreshCaptcha = async () => {
+  console.log('【调试】refreshCaptcha 被调用')
   try {
     const res = await fetch(`${API_BASE}/api/captcha`)
     const data = await res.json()
+    console.log('【调试】验证码接口返回:', data)
     if (data.code === 200) {
-      captchaImage.value = data.image
-      registerForm.captchaId = data.captchaId
+      captchaImage.value = data.data.image
+      registerForm.captchaId = data.data.captchaId
+      console.log('【调试】验证码已设置, captchaId:', data.data.captchaId)
+    } else {
+      console.error('【调试】验证码接口返回错误:', data)
     }
   } catch (e) {
-    console.error('获取验证码失败', e)
+    console.error('【调试】获取验证码失败', e)
+    alert('获取验证码失败，请检查网络连接')
   }
 }
 
