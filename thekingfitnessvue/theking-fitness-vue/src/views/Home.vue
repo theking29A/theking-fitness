@@ -270,9 +270,23 @@
         <div class="stats-card">
           <div class="card-header">
             <h3>🤖 AI 体重趋势预测</h3>
-            <button class="btn-primary-small" @click="loadWeightPrediction">刷新预测</button>
+            <button class="btn-primary-small" @click="openWeightRecordModal">📅 记录体重</button>
           </div>
-          <div v-if="weightPrediction.loading" class="empty-state">
+          
+          <!-- 体重历史记录列表 -->
+          <div v-if="weightRecords.length > 0" class="weight-history-list">
+            <div class="history-item" v-for="(record, index) in weightRecords.slice(-7)" :key="index">
+              <span class="history-date">{{ record.date }}</span>
+              <span class="history-weight">{{ record.weight }} kg</span>
+            </div>
+          </div>
+          
+          <div v-if="weightRecords.length < 7" class="empty-state">
+            <p>已记录 {{ weightRecords.length }} 天，还需 {{ 7 - weightRecords.length }} 天即可进行 AI 预测</p>
+            <p style="font-size: 12px; color: #888;">请每天记录体重，满 7 天后 AI 将为您预测趋势</p>
+          </div>
+          
+          <div v-else-if="weightPrediction.loading" class="empty-state">
             <p>AI 分析中...</p>
           </div>
           <div v-else-if="weightPrediction.error" class="empty-state">
@@ -295,9 +309,6 @@
               {{ Math.abs(weightPrediction.data.change) }} kg
             </div>
             <p class="prediction-hint">基于 {{ weightHistory.length }} 天历史数据，由 TensorFlow LSTM 模型分析</p>
-          </div>
-          <div v-else class="empty-state">
-            <p>记录体重后，AI 将为您预测趋势</p>
           </div>
         </div>
 
@@ -768,7 +779,33 @@
       </div>
     </div>
 
-  </div>
+      <!-- 体重记录弹窗 -->
+    <div class="login-modal-overlay" :class="{ show: isWeightRecordModalOpen }" @click="closeWeightRecordModal">
+      <div class="login-modal" @click.stop>
+        <button class="login-modal-close" @click="closeWeightRecordModal">&times;</button>
+        
+        <div class="login-header">
+          <h2>记录体重</h2>
+          <p>记录您的每日体重，AI 将为您预测趋势</p>
+        </div>
+        
+        <div class="login-form">
+          <div class="form-group">
+            <label>日期</label>
+            <input type="date" v-model="weightRecordForm.date" :max="today" class="form-select">
+          </div>
+          <div class="form-group">
+            <label>体重 (kg)</label>
+            <input type="number" v-model="weightRecordForm.weight" placeholder="70.5" step="0.1" class="form-select">
+          </div>
+          <button class="btn-login" @click="saveWeightRecord" :disabled="!weightRecordForm.weight">
+            保存记录
+          </button>
+        </div>
+      </div>
+    </div>
+
+</div>
 </template>
 
 <script setup lang="ts">
@@ -813,12 +850,118 @@ const forgotForm = reactive({ account: '', email: '', code: '', newPassword: '',
 const codeCountdown = ref(0)
 
 // AI 体重预测相关
+const weightRecords = ref<Array<{date: string, weight: number}>>([])
 const weightHistory = ref<number[]>([])
 const weightPrediction = reactive({
   loading: false,
   error: '',
   data: null as any
 })
+
+// 体重记录弹窗
+const isWeightRecordModalOpen = ref(false)
+const weightRecordForm = reactive({
+  date: new Date().toISOString().split('T')[0],
+  weight: ''
+})
+
+const today = new Date().toISOString().split('T')[0]
+
+const openWeightRecordModal = () => {
+  isWeightRecordModalOpen.value = true
+  weightRecordForm.date = new Date().toISOString().split('T')[0]
+  weightRecordForm.weight = ''
+}
+
+const closeWeightRecordModal = () => {
+  isWeightRecordModalOpen.value = false
+}
+
+const loadWeightRecords = () => {
+  const stored = localStorage.getItem('theking_weight_records')
+  if (stored) {
+    weightRecords.value = JSON.parse(stored)
+    // 按日期排序
+    weightRecords.value.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+  }
+}
+
+const saveWeightRecord = () => {
+  if (!weightRecordForm.weight) {
+    alert('请输入体重')
+    return
+  }
+  
+  const weight = parseFloat(weightRecordForm.weight)
+  if (isNaN(weight) || weight <= 0) {
+    alert('请输入有效的体重')
+    return
+  }
+  
+  // 查找是否已有同日期记录
+  const existingIndex = weightRecords.value.findIndex(r => r.date === weightRecordForm.date)
+  if (existingIndex >= 0) {
+    // 覆盖已有记录
+    weightRecords.value[existingIndex].weight = weight
+  } else {
+    // 添加新记录
+    weightRecords.value.push({
+      date: weightRecordForm.date,
+      weight: weight
+    })
+  }
+  
+  // 排序并保存
+  weightRecords.value.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+  localStorage.setItem('theking_weight_records', JSON.stringify(weightRecords.value))
+  
+  alert('记录成功！')
+  closeWeightRecordModal()
+  
+  // 如果满 7 条，自动触发预测
+  if (weightRecords.value.length >= 7) {
+    loadWeightPrediction()
+  }
+}
+
+const loadWeightPrediction = async () => {
+  // 使用真实记录的数据
+  if (weightRecords.value.length < 7) {
+    weightPrediction.error = '需要至少7天的体重记录'
+    return
+  }
+  
+  // 取最近 7 条记录
+  const recentRecords = weightRecords.value.slice(-7)
+  weightHistory.value = recentRecords.map(r => r.weight)
+  
+  weightPrediction.loading = true
+  weightPrediction.error = ''
+  
+  try {
+    const token = localStorage.getItem('theking_token')
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+    if (token) headers['Authorization'] = 'Bearer ' + token
+    
+    const response = await fetch(`${API_BASE}/api/ai/predict-weight`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ history: weightHistory.value })
+    })
+    
+    const result = await response.json()
+    if (result.code === 200) {
+      weightPrediction.data = result.data
+    } else {
+      weightPrediction.error = result.message || '预测失败'
+    }
+  } catch (e) {
+    weightPrediction.error = '网络错误，请稍后重试'
+    console.error('体重预测失败:', e)
+  } finally {
+    weightPrediction.loading = false
+  }
+}
 
 // 热量计算相关
 const calorieForm = reactive({
@@ -894,60 +1037,7 @@ const loadCalorieHistory = async () => {
 }
 
 
-const loadWeightPrediction = async () => {
-  // 从本地存储加载历史体重数据（模拟数据，实际应从后端获取）
-  const stored = localStorage.getItem('theking_weight_history')
-  if (stored) {
-    weightHistory.value = JSON.parse(stored)
-  } else {
-    // 生成模拟数据用于演示
-    weightHistory.value = generateMockWeightData()
-    localStorage.setItem('theking_weight_history', JSON.stringify(weightHistory.value))
-  }
-  
-  if (weightHistory.value.length < 7) {
-    weightPrediction.error = '需要至少7天的体重记录'
-    return
-  }
-  
-  weightPrediction.loading = true
-  weightPrediction.error = ''
-  
-  try {
-    const token = localStorage.getItem('theking_token')
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-    if (token) headers['Authorization'] = 'Bearer ' + token
-    
-    const response = await fetch(`${API_BASE}/api/ai/predict-weight`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ history: weightHistory.value })
-    })
-    
-    const result = await response.json()
-    if (result.code === 200) {
-      weightPrediction.data = result.data
-    } else {
-      weightPrediction.error = result.message || '预测失败'
-    }
-  } catch (e) {
-    weightPrediction.error = '网络错误，请稍后重试'
-    console.error('体重预测失败:', e)
-  } finally {
-    weightPrediction.loading = false
-  }
-}
 
-const generateMockWeightData = () => {
-  // 生成30天模拟体重数据（缓慢下降趋势）
-  const data: number[] = []
-  let weight = 75.0
-  for (let i = 0; i < 30; i++) {
-    weight += (Math.random() - 0.6) * 0.5  // 总体缓慢下降
-    data.push(Math.round(weight * 10) / 10)
-  }
-  return data
-}
 
 const API_BASE = 'http://120.24.236.105'
 
@@ -1236,8 +1326,12 @@ onMounted(() => {
   if (currentAccount.value) reloadUserData()
   // 加载热量计算历史
   loadCalorieHistory()
-  // 加载热量计算历史
-  loadCalorieHistory()
+  // 加载体重记录
+  loadWeightRecords()
+  // 如果满 7 条，自动触发预测
+  if (weightRecords.value.length >= 7) {
+    loadWeightPrediction()
+  }
   // 埋点：记录用户浏览健身内容
   trackActivity('VIEW_EXERCISE')
 })
@@ -1623,11 +1717,6 @@ const showPage = (pageName: string) => {
   activePage.value = pageName
   isMenuOpen.value = false
   window.scrollTo(0, 0)
-  
-  // 切换到数据面板时自动加载 AI 预测
-  if (pageName === 'stats') {
-    loadWeightPrediction()
-  }
 }
 
 const toggleCompleted = (key: string, event: Event) => {
@@ -2395,5 +2484,52 @@ body.dark-theme .prediction-hint { color: #8e8e93; }
   font-size: 12px;
   color: #888;
   margin-top: 5px;
+}
+
+.weight-history-list {
+  padding: 10px 15px;
+  border-bottom: 1px solid #333;
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #222;
+  font-size: 14px;
+}
+
+.history-item:last-child {
+  border-bottom: none;
+}
+
+.history-date {
+  color: #888;
+}
+
+.history-weight {
+  color: #fff;
+  font-weight: bold;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  color: #888;
+  font-size: 13px;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #333;
+  border-radius: 8px;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 14px;
 }
 </style>
