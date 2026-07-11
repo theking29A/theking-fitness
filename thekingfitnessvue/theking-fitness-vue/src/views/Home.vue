@@ -301,7 +301,77 @@
           </div>
         </div>
 
+                <!-- 智能热量计算 -->
         <div class="stats-card">
+          <div class="card-header">
+            <h3>🔥 智能热量计算</h3>
+            <button class="btn-primary-small" @click="calculateCalories">计算</button>
+          </div>
+          <div v-if="!isLoggedIn" class="empty-state">
+            <p>请先登录使用 AI 热量计算</p>
+          </div>
+          <div v-else>
+            <div class="calorie-form">
+              <div class="form-row">
+                <div class="form-item">
+                  <label>体重 (kg)</label>
+                  <input type="number" v-model="calorieForm.weight" placeholder="70">
+                </div>
+                <div class="form-item">
+                  <label>身高 (cm)</label>
+                  <input type="number" v-model="calorieForm.height" placeholder="175">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-item">
+                  <label>年龄</label>
+                  <input type="number" v-model="calorieForm.age" placeholder="25">
+                </div>
+                <div class="form-item">
+                  <label>性别</label>
+                  <select v-model="calorieForm.gender">
+                    <option value="male">男</option>
+                    <option value="female">女</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-item" style="width: 100%;">
+                  <label>活动量</label>
+                  <select v-model="calorieForm.activity">
+                    <option value="sedentary">久坐不动</option>
+                    <option value="light">轻度活动</option>
+                    <option value="moderate">中度活动</option>
+                    <option value="active">高度活动</option>
+                    <option value="very_active">极度活动</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            
+            <div v-if="calorieResult.loading" class="empty-state">
+              <p>AI 计算中...</p>
+            </div>
+            <div v-else-if="calorieResult.data" class="calorie-result">
+              <div class="result-grid">
+                <div class="result-item">
+                  <div class="result-value">{{ calorieResult.data.bmr }}</div>
+                  <div class="result-label">基础代谢 (BMR)</div>
+                </div>
+                <div class="result-item">
+                  <div class="result-value text-accent">{{ calorieResult.data.tdee }}</div>
+                  <div class="result-label">每日总消耗 (TDEE)</div>
+                </div>
+                <div class="result-item">
+                  <div class="result-value text-green">{{ calorieResult.data.recommendation }}</div>
+                  <div class="result-label">减脂建议摄入</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+<div class="stats-card">
           <div class="card-header">
             <h3>🏋️ 我的训练模板库</h3>
             <button class="btn-primary-small" @click="openAddWorkoutModal">+ 添加</button>
@@ -750,6 +820,80 @@ const weightPrediction = reactive({
   data: null as any
 })
 
+// 热量计算相关
+const calorieForm = reactive({
+  weight: '',
+  height: '',
+  age: '',
+  gender: 'male',
+  activity: 'moderate'
+})
+
+const calorieResult = reactive({
+  loading: false,
+  data: null as any
+})
+
+const calorieHistory = ref<any[]>([])
+
+const calculateCalories = async () => {
+  if (!calorieForm.weight || !calorieForm.height || !calorieForm.age) {
+    alert('请填写完整信息')
+    return
+  }
+  
+  calorieResult.loading = true
+  try {
+    const token = localStorage.getItem('theking_token')
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+    if (token) headers['Authorization'] = 'Bearer ' + token
+    
+    const response = await fetch(`${API_BASE}/api/ai/predict-calories`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        weight: Number(calorieForm.weight),
+        height: Number(calorieForm.height),
+        age: Number(calorieForm.age),
+        gender: calorieForm.gender,
+        activity: calorieForm.activity
+      })
+    })
+    
+    const result = await response.json()
+    if (result.code === 200) {
+      calorieResult.data = result.data
+      // 刷新历史记录
+      loadCalorieHistory()
+    } else {
+      alert(result.message || '计算失败')
+    }
+  } catch (e) {
+    alert('网络错误')
+  } finally {
+    calorieResult.loading = false
+  }
+}
+
+const loadCalorieHistory = async () => {
+  try {
+    const token = localStorage.getItem('theking_token')
+    if (!token) return
+    
+    const response = await fetch(`${API_BASE}/api/ai/calorie-history`, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    })
+    
+    const result = await response.json()
+    if (result.code === 200) {
+      calorieHistory.value = result.data
+    }
+  } catch (e) {
+    console.error('加载热量历史失败:', e)
+  }
+}
+
+
 const loadWeightPrediction = async () => {
   // 从本地存储加载历史体重数据（模拟数据，实际应从后端获取）
   const stored = localStorage.getItem('theking_weight_history')
@@ -1090,6 +1234,10 @@ const handleLogout = () => {
 onMounted(() => {
   if (settingsConfig.darkMode) document.body.classList.add('dark-theme')
   if (currentAccount.value) reloadUserData()
+  // 加载热量计算历史
+  loadCalorieHistory()
+  // 加载热量计算历史
+  loadCalorieHistory()
   // 埋点：记录用户浏览健身内容
   trackActivity('VIEW_EXERCISE')
 })
@@ -2110,4 +2258,142 @@ body.dark-theme .prediction-value { color: #fff; }
 body.dark-theme .prediction-label { color: #8e8e93; }
 body.dark-theme .prediction-arrow { color: #555; }
 body.dark-theme .prediction-hint { color: #8e8e93; }
+
+
+/* ========== 智能热量计算 ========== */
+.calorie-form {
+  padding: 15px;
+}
+
+.form-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.form-item {
+  flex: 1;
+}
+
+.form-item label {
+  display: block;
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 5px;
+}
+
+.form-item input,
+.form-item select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #333;
+  border-radius: 8px;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 14px;
+}
+
+.calorie-result {
+  padding: 15px;
+  border-top: 1px solid #333;
+}
+
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.result-item {
+  text-align: center;
+}
+
+.result-value {
+  font-size: 24px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.result-value.text-accent {
+  color: #ff6b35;
+}
+
+.result-value.text-green {
+  color: #4caf50;
+}
+
+.result-label {
+  font-size: 12px;
+  color: #888;
+  margin-top: 5px;
+}
+
+
+/* ========== 智能热量计算 ========== */
+.calorie-form {
+  padding: 15px;
+}
+
+.form-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.form-item {
+  flex: 1;
+}
+
+.form-item label {
+  display: block;
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 5px;
+}
+
+.form-item input,
+.form-item select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #333;
+  border-radius: 8px;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 14px;
+}
+
+.calorie-result {
+  padding: 15px;
+  border-top: 1px solid #333;
+}
+
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.result-item {
+  text-align: center;
+}
+
+.result-value {
+  font-size: 24px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.result-value.text-accent {
+  color: #ff6b35;
+}
+
+.result-value.text-green {
+  color: #4caf50;
+}
+
+.result-label {
+  font-size: 12px;
+  color: #888;
+  margin-top: 5px;
+}
 </style>

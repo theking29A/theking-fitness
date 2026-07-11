@@ -2,12 +2,19 @@ package com.theking.theking_backend.controller;
 
 import com.theking.theking_backend.common.Result;
 import com.theking.theking_backend.dto.WeightPredictionRequest;
+import com.theking.theking_backend.entity.CalorieRecord;
+import com.theking.theking_backend.entity.User;
+import com.theking.theking_backend.repository.CalorieRecordRepository;
+import com.theking.theking_backend.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -18,10 +25,15 @@ public class AiController {
     private String aiServiceUrl;
     private final RestTemplate restTemplate = new RestTemplate();
 
+    @Autowired
+    private CalorieRecordRepository calorieRecordRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
     @PostMapping("/predict-weight")
     public Result predictWeight(@RequestBody WeightPredictionRequest request) {
         try {
-            // 构建请求
             Map<String, Object> body = new HashMap<>();
             body.put("history", request.getHistory());
 
@@ -29,7 +41,6 @@ public class AiController {
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
-            // 调用 Django AI 服务
             ResponseEntity<Map> response = restTemplate.postForEntity(
                 aiServiceUrl + "/predict/weight/",
                 entity,
@@ -37,20 +48,70 @@ public class AiController {
             );
 
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                Map data = (Map) response.getBody().get("data");
-                return Result.success(data);
+                return Result.success(response.getBody());
             } else {
                 return Result.error("AI 预测服务返回异常");
             }
 
         } catch (Exception e) {
-            // AI 服务不可用，返回备用预测（简单线性回归）
             return fallbackPredict(request.getHistory());
         }
     }
 
+    @PostMapping("/predict-calories")
+    public Result predictCalories(@RequestBody Map<String, Object> request, @RequestAttribute("userId") Long userId) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(request, headers);
+
+            ResponseEntity<Map> response = restTemplate.postForEntity(
+                aiServiceUrl + "/predict/calories/",
+                entity,
+                Map.class
+            );
+
+            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                Map result = response.getBody();
+                
+                // 保存历史记录
+                if (userId != null) {
+                    CalorieRecord record = new CalorieRecord();
+                    record.setUserId(userId);
+                    record.setWeight(((Number) request.get("weight")).doubleValue());
+                    record.setHeight(((Number) request.get("height")).doubleValue());
+                    record.setAge(((Number) request.get("age")).intValue());
+                    record.setGender((String) request.get("gender"));
+                    record.setActivity((String) request.get("activity"));
+                    record.setBmr(((Number) ((Map) result).get("bmr")).doubleValue());
+                    record.setTdee(((Number) ((Map) result).get("tdee")).doubleValue());
+                    record.setRecommendation(((Number) ((Map) result).get("recommendation")).doubleValue());
+                    calorieRecordRepository.save(record);
+                }
+                
+                return Result.success(result);
+            } else {
+                return Result.error("AI 服务返回异常");
+            }
+
+        } catch (Exception e) {
+            // 备用计算
+            return fallbackCalories(request);
+        }
+    }
+
+    @GetMapping("/calorie-history")
+    public Result getCalorieHistory(@RequestAttribute("userId") Long userId) {
+        if (userId == null) {
+            return Result.error("请先登录");
+        }
+        
+        LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
+        List<CalorieRecord> records = calorieRecordRepository.findByUserIdAndCreatedAtAfterOrderByCreatedAtDesc(userId, thirtyDaysAgo);
+        return Result.success(records);
+    }
+
     private Result fallbackPredict(java.util.List<Double> history) {
-        // 简单线性回归作为备用
         int n = history.size();
         double sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
 
@@ -73,6 +134,37 @@ public class AiController {
         result.put("predictedWeight", Math.round(predicted * 100.0) / 100.0);
         result.put("trend", change > 0 ? "up" : "down");
         result.put("change", Math.round(change * 100.0) / 100.0);
+
+        return Result.success(result);
+    }
+
+    private Result fallbackCalories(Map<String, Object> request) {
+        double weight = ((Number) request.get("weight")).doubleValue();
+        double height = ((Number) request.get("height")).doubleValue();
+        int age = ((Number) request.get("age")).intValue();
+        String gender = (String) request.get("gender");
+        String activity = (String) request.getOrDefault("activity", "moderate");
+
+        double bmr;
+        if ("male".equals(gender)) {
+            bmr = 10 * weight + 6.25 * height - 5 * age + 5;
+        } else {
+            bmr = 10 * weight + 6.25 * height - 5 * age - 161;
+        }
+
+        Map<String, Double> factors = new HashMap<>();
+        factors.put("sedentary", 1.2);
+        factors.put("light", 1.375);
+        factors.put("moderate", 1.55);
+        factors.put("active", 1.725);
+        factors.put("very_active", 1.9);
+
+        double tdee = bmr * factors.getOrDefault(activity, 1.55);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("bmr", Math.round(bmr * 100.0) / 100.0);
+        result.put("tdee", Math.round(tdee * 100.0) / 100.0);
+        result.put("recommendation", Math.round((tdee - 500) * 100.0) / 100.0);
 
         return Result.success(result);
     }
