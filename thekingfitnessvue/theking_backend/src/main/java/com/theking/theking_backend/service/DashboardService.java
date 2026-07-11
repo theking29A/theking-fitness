@@ -131,12 +131,12 @@ public class DashboardService {
     public Map<String, Object> getContentStats() {
         Map<String, Object> result = new HashMap<>();
         
-        List<Object[]> categoryData = exerciseMapper.countByCategory();
+        List<Map<String, Object>> categoryData = exerciseMapper.countByCategory();
         List<Map<String, Object>> categoryList = new ArrayList<>();
-        for (Object[] row : categoryData) {
+        for (Map<String, Object> row : categoryData) {
             Map<String, Object> item = new HashMap<>();
-            item.put("category", row[0]);
-            item.put("count", row[1]);
+            item.put("category", row.get("category"));
+            item.put("count", row.get("count"));
             categoryList.add(item);
         }
         result.put("exercisesByCategory", categoryList);
