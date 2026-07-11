@@ -1,44 +1,18 @@
 package com.theking.theking_backend.entity;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "plan_exercises")
 public class PlanExercise {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(name = "plan_id", nullable = false)
     private Long planId;
-
-    @Column(name = "exercise_id", nullable = false)
     private Long exerciseId;
-
-    @Column(name = "day_number", nullable = false)
-    private Integer dayNumber = 1;
-
-    @Column(nullable = false)
-    private Integer sets = 3;
-
-    @Column(length = 50)
-    private String reps = "12";
-
-    @Column(name = "rest_seconds")
-    private Integer restSeconds = 60;
-
-    @Column(name = "order_index", nullable = false)
-    private Integer orderIndex = 0;
-
-    @Column(name = "created_at", updatable = false)
+    private Integer dayNumber;
+    private Integer sets;
+    private String reps;
+    private Integer restSeconds;
+    private Integer orderIndex;
     private LocalDateTime createdAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
 
     // Getters & Setters
     public Long getId() { return id; }

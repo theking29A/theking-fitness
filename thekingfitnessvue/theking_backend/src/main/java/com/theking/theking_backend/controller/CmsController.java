@@ -1,5 +1,7 @@
 package com.theking.theking_backend.controller;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.theking.theking_backend.common.Result;
 import com.theking.theking_backend.entity.Exercise;
 import com.theking.theking_backend.entity.PlanExercise;
@@ -10,10 +12,6 @@ import com.theking.theking_backend.service.CmsService;
 import com.theking.theking_backend.service.OperationLogService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -44,13 +42,14 @@ public class CmsController {
     // ========== Exercise 健身动作 ==========
 
     @GetMapping("/exercises")
-    public Result<Page<Exercise>> listExercises(
+    public Result<PageInfo<Exercise>> listExercises(
             @RequestParam String token,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         getAdmin(token);
-        Pageable pageable = PageRequest.of(page, size, Sort.by("sortOrder").ascending());
-        return Result.success(cmsService.listAllExercises(pageable));
+        PageHelper.startPage(page + 1, size);
+        List<Exercise> list = cmsService.listAllExercises(page, size);
+        return Result.success(new PageInfo<>(list));
     }
 
     @GetMapping("/exercises/{id}")
@@ -89,13 +88,14 @@ public class CmsController {
     // ========== Training Plan 训练计划 ==========
 
     @GetMapping("/plans")
-    public Result<Page<TrainingPlan>> listPlans(
+    public Result<PageInfo<TrainingPlan>> listPlans(
             @RequestParam String token,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         getAdmin(token);
-        Pageable pageable = PageRequest.of(page, size, Sort.by("sortOrder").ascending());
-        return Result.success(cmsService.listAllPlans(pageable));
+        PageHelper.startPage(page + 1, size);
+        List<TrainingPlan> list = cmsService.listAllPlans(page, size);
+        return Result.success(new PageInfo<>(list));
     }
 
     @GetMapping("/plans/{id}")

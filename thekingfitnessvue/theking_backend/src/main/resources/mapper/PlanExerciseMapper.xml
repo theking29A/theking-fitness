@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.theking.theking_backend.mapper.PlanExerciseMapper">
+
+    <resultMap id="PlanExerciseResultMap" type="com.theking.theking_backend.entity.PlanExercise">
+        <id property="id" column="id"/>
+        <result property="planId" column="plan_id"/>
+        <result property="exerciseId" column="exercise_id"/>
+        <result property="dayNumber" column="day_number"/>
+        <result property="sets" column="sets"/>
+        <result property="reps" column="reps"/>
+        <result property="restSeconds" column="rest_seconds"/>
+        <result property="orderIndex" column="order_index"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+</mapper>

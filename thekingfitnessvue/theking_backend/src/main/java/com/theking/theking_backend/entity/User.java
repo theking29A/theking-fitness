@@ -1,38 +1,14 @@
 package com.theking.theking_backend.entity;
 
-import jakarta.persistence.*;
-
-@Entity
-@Table(name = "users")
 public class User {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(nullable = false, unique = true)
     private String account;
-
-    @Column(nullable = false)
     private String password;
-
-    @Column
     private String nickname;
-
-    @Column
     private String email;
-
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
     private Role role = Role.USER;
-
-    @Column(name = "created_at", updatable = false)
     private java.time.LocalDateTime createdAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = java.time.LocalDateTime.now();
-    }
 
     public enum Role {
         USER, ADMIN

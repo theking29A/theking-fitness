@@ -2,7 +2,7 @@ package com.theking.theking_backend.service;
 
 import com.theking.theking_backend.common.Result;
 import com.theking.theking_backend.entity.User;
-import com.theking.theking_backend.repository.UserRepository;
+import com.theking.theking_backend.mapper.UserMapper;
 import com.theking.theking_backend.util.CodeStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,13 +14,13 @@ import java.util.UUID;
 public class AuthService {
 
     @Autowired
-    private UserRepository userRepository;
+    private UserMapper userMapper;
 
     /**
      * 登录：验证账号密码，成功返回 token，失败返回 null
      */
     public String login(String account, String password) {
-        Optional<User> userOpt = userRepository.findByAccount(account);
+        Optional<User> userOpt = userMapper.findByAccount(account);
         if (userOpt.isPresent()) {
             User user = userOpt.get();
             if (user.getPassword().equals(password)) {
@@ -35,12 +35,12 @@ public class AuthService {
      */
     public Result<Void> register(String account, String password, String email) {
         // 1. 账号已存在
-        if (userRepository.existsByAccount(account)) {
+        if (userMapper.existsByAccount(account)) {
             return Result.error(409, "该账号已被注册");
         }
 
         // 2. 邮箱已存在
-        if (email != null && !email.isEmpty() && userRepository.existsByEmail(email)) {
+        if (email != null && !email.isEmpty() && userMapper.existsByEmail(email)) {
             return Result.error(409, "该邮箱已被使用");
         }
 
@@ -50,7 +50,8 @@ public class AuthService {
         user.setPassword(password);
         user.setEmail(email);
         user.setNickname(account);
-        userRepository.save(user);
+        user.setCreatedAt(java.time.LocalDateTime.now());
+        userMapper.insert(user);
 
         return Result.success();
     }
@@ -59,7 +60,7 @@ public class AuthService {
      * 忘记密码：验证邮箱验证码后重置密码
      */
     public Result<Void> resetPassword(String account, String email, String code, String newPassword) {
-        Optional<User> userOpt = userRepository.findByAccount(account);
+        Optional<User> userOpt = userMapper.findByAccount(account);
         if (!userOpt.isPresent()) {
             return Result.error(404, "账号不存在");
         }
@@ -74,7 +75,7 @@ public class AuthService {
         }
 
         user.setPassword(newPassword);
-        userRepository.save(user);
+        userMapper.update(user);
 
         return Result.success();
     }

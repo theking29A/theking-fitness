@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.theking.theking_backend.mapper.TrainingPlanMapper">
+
+    <resultMap id="TrainingPlanResultMap" type="com.theking.theking_backend.entity.TrainingPlan">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="description" column="description"/>
+        <result property="goal" column="goal"/>
+        <result property="level" column="level"/>
+        <result property="durationWeeks" column="duration_weeks"/>
+        <result property="daysPerWeek" column="days_per_week"/>
+        <result property="coverImage" column="cover_image"/>
+        <result property="estimatedTimeMin" column="estimated_time_min"/>
+        <result property="status" column="status"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- 动态搜索 + 分页 -->
+    <select id="searchByKeywordPage" resultMap="TrainingPlanResultMap">
+        SELECT * FROM training_plans
+        <where>
+            status = 1
+            <if test="keyword != null and keyword != ''">
+                AND (name LIKE CONCAT('%', #{keyword}, '%')
+                OR description LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+    </select>
+
+    <!-- 按目标分页查询 -->
+    <select id="findByGoalAndStatusPage" resultMap="TrainingPlanResultMap">
+        SELECT * FROM training_plans WHERE goal = #{goal} AND status = #{status}
+    </select>
+
+    <!-- 按状态分页查询 -->
+    <select id="findByStatusOrderBySortOrderAscPage" resultMap="TrainingPlanResultMap">
+        SELECT * FROM training_plans WHERE status = #{status} ORDER BY sort_order ASC
+    </select>
+
+</mapper>

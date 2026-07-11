@@ -1,5 +1,6 @@
 package com.theking.theking_backend.controller;
 
+import com.theking.theking_backend.common.PageResult;
 import com.theking.theking_backend.common.Result;
 import com.theking.theking_backend.entity.Announcement;
 import com.theking.theking_backend.entity.User;
@@ -7,10 +8,6 @@ import com.theking.theking_backend.service.AdminService;
 import com.theking.theking_backend.service.AnnouncementService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,13 +31,12 @@ public class AnnouncementController {
     }
 
     @GetMapping("/list")
-    public Result<Page<Announcement>> list(
+    public Result<PageResult<Announcement>> list(
             @RequestParam String token,
-            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
         getAdmin(token);
-        Pageable pageable = PageRequest.of(page, size, Sort.by("sortOrder").ascending().and(Sort.by("createdAt").descending()));
-        return Result.success(announcementService.listAll(pageable));
+        return Result.success(announcementService.listAll(page, size));
     }
 
     @GetMapping("/active")

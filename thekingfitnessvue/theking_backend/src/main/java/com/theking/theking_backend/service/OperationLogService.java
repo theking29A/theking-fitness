@@ -1,25 +1,26 @@
 package com.theking.theking_backend.service;
 
 import com.theking.theking_backend.entity.OperationLog;
-import com.theking.theking_backend.repository.OperationLogRepository;
+import com.theking.theking_backend.mapper.OperationLogMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
+import java.util.List;
 
 @Service
 public class OperationLogService {
 
     @Autowired
-    private OperationLogRepository operationLogRepository;
+    private OperationLogMapper operationLogMapper;
 
-    public void log(Long adminId, String adminAccount, String operationType, 
+    public void log(Long adminId, String adminAccount, String operationType,
                     String targetType, String targetId, String detail) {
         OperationLog log = new OperationLog();
         log.setAdminId(adminId);
@@ -28,7 +29,7 @@ public class OperationLogService {
         log.setTargetType(targetType);
         log.setTargetId(targetId);
         log.setDetail(detail);
-        
+
         // 尝试获取请求信息
         try {
             ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
@@ -40,16 +41,25 @@ public class OperationLogService {
         } catch (Exception e) {
             // 忽略，可能不在请求上下文中
         }
-        
-        operationLogRepository.save(log);
+
+        log.setCreatedAt(LocalDateTime.now());
+        operationLogMapper.insert(log);
     }
 
     public Page<OperationLog> listLogs(Pageable pageable) {
-        return operationLogRepository.findAll(pageable);
+        int offset = (int) pageable.getOffset();
+        int pageSize = pageable.getPageSize();
+        List<OperationLog> list = operationLogMapper.selectAll(offset, pageSize);
+        long total = operationLogMapper.countAll();
+        return new PageImpl<>(list, pageable, total);
     }
 
     public Page<OperationLog> listLogsByAdmin(Long adminId, Pageable pageable) {
-        return operationLogRepository.findByAdminIdOrderByCreatedAtDesc(adminId, pageable);
+        int offset = (int) pageable.getOffset();
+        int pageSize = pageable.getPageSize();
+        List<OperationLog> list = operationLogMapper.selectByAdminId(adminId, offset, pageSize);
+        long total = operationLogMapper.countByAdminId(adminId);
+        return new PageImpl<>(list, pageable, total);
     }
 
     private String getClientIp(HttpServletRequest request) {

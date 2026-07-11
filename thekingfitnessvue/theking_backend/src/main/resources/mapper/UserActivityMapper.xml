@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.theking.theking_backend.mapper.UserActivityMapper">
+
+    <!-- 统计某时间段内登录的日活跃用户 -->
+    <select id="countDailyActiveUsers" resultType="java.lang.Long">
+        SELECT COUNT(DISTINCT user_id)
+        FROM user_activities
+        WHERE activity_type = 'LOGIN'
+          AND created_at &gt;= #{startTime}
+          AND created_at &lt;= #{endTime}
+    </select>
+
+    <!-- 统计某时间之后的活跃用户数 -->
+    <select id="countActiveUsersSince" resultType="java.lang.Long">
+        SELECT COUNT(DISTINCT user_id)
+        FROM user_activities
+        WHERE created_at &gt;= #{startTime}
+    </select>
+
+    <!-- 每日活跃用户统计 -->
+    <select id="getDailyActiveUsers" resultType="java.util.HashMap">
+        SELECT DATE(created_at) as date, COUNT(DISTINCT user_id) as dau
+        FROM user_activities
+        WHERE created_at &gt;= #{startTime}
+          AND created_at &lt;= #{endTime}
+        GROUP BY DATE(created_at)
+        ORDER BY DATE(created_at)
+    </select>
+
+    <!-- 按活动类型统计 -->
+    <select id="countByActivityTypeSince" resultType="java.util.HashMap">
+        SELECT activity_type as type, COUNT(*) as count
+        FROM user_activities
+        WHERE created_at &gt;= #{startTime}
+        GROUP BY activity_type
+    </select>
+
+    <!-- 按活动类型统计参与用户数 -->
+    <select id="countUsersByActivityType" resultType="java.lang.Long">
+        SELECT COUNT(DISTINCT user_id)
+        FROM user_activities
+        WHERE created_at &gt;= #{startTime}
+          AND activity_type = #{activityType}
+    </select>
+
+</mapper>

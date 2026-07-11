@@ -4,8 +4,8 @@ import com.theking.theking_backend.common.Result;
 import com.theking.theking_backend.dto.WeightPredictionRequest;
 import com.theking.theking_backend.entity.CalorieRecord;
 import com.theking.theking_backend.entity.User;
-import com.theking.theking_backend.repository.CalorieRecordRepository;
-import com.theking.theking_backend.repository.UserRepository;
+import com.theking.theking_backend.mapper.CalorieRecordMapper;
+import com.theking.theking_backend.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -26,10 +26,10 @@ public class AiController {
     private final RestTemplate restTemplate = new RestTemplate();
 
     @Autowired
-    private CalorieRecordRepository calorieRecordRepository;
+    private CalorieRecordMapper calorieRecordMapper;
 
     @Autowired
-    private UserRepository userRepository;
+    private UserMapper userMapper;
 
     @PostMapping("/predict-weight")
     public Result predictWeight(@RequestBody WeightPredictionRequest request) {
@@ -89,7 +89,8 @@ public class AiController {
                         record.setBmr(((Number) result.get("bmr")).doubleValue());
                         record.setTdee(((Number) result.get("tdee")).doubleValue());
                         record.setRecommendation(((Number) result.get("recommendation")).doubleValue());
-                        calorieRecordRepository.save(record);
+                        record.setCreatedAt(LocalDateTime.now());
+                        calorieRecordMapper.insert(record);
                     } catch (Exception e) {
                         System.out.println("保存热量记录失败: " + e.getMessage());
                     }
@@ -114,7 +115,7 @@ public class AiController {
         try {
             // 简化处理：返回所有记录（实际应该根据token解析userId过滤）
             LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
-            List<CalorieRecord> records = calorieRecordRepository.findByUserIdAndCreatedAtAfterOrderByCreatedAtDesc(1L, thirtyDaysAgo);
+            List<CalorieRecord> records = calorieRecordMapper.findByUserIdAndCreatedAtAfterOrderByCreatedAtDesc(1L, thirtyDaysAgo);
             return Result.success(records);
         } catch (Exception e) {
             return Result.error("获取历史记录失败");

@@ -3,11 +3,12 @@ package com.theking.theking_backend.service;
 import com.theking.theking_backend.entity.User;
 import com.theking.theking_backend.entity.UserActivity;
 import com.theking.theking_backend.entity.UserTrainingRecord;
-import com.theking.theking_backend.repository.UserActivityRepository;
-import com.theking.theking_backend.repository.UserRepository;
-import com.theking.theking_backend.repository.UserTrainingRecordRepository;
+import com.theking.theking_backend.mapper.UserActivityMapper;
+import com.theking.theking_backend.mapper.UserMapper;
+import com.theking.theking_backend.mapper.UserTrainingRecordMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -21,19 +22,19 @@ import java.util.Optional;
 public class UserProfileService {
 
     @Autowired
-    private UserRepository userRepository;
+    private UserMapper userMapper;
 
     @Autowired
-    private UserActivityRepository userActivityRepository;
+    private UserActivityMapper userActivityMapper;
 
     @Autowired
-    private UserTrainingRecordRepository userTrainingRecordRepository;
+    private UserTrainingRecordMapper userTrainingRecordMapper;
 
     public Map<String, Object> getUserProfile(Long userId) {
         Map<String, Object> profile = new HashMap<>();
         
         // 基本信息
-        Optional<User> userOpt = userRepository.findById(userId);
+        Optional<User> userOpt = userMapper.findById(userId);
         if (userOpt.isPresent()) {
             User user = userOpt.get();
             profile.put("id", user.getId());
@@ -45,9 +46,9 @@ public class UserProfileService {
         }
         
         // 训练统计
-        Long totalWorkouts = userTrainingRecordRepository.countByUserId(userId);
-        Integer totalCalories = userTrainingRecordRepository.sumCaloriesByUserId(userId);
-        Integer totalDuration = userTrainingRecordRepository.sumDurationByUserId(userId);
+        Long totalWorkouts = userTrainingRecordMapper.countByUserId(userId);
+        Integer totalCalories = userTrainingRecordMapper.sumCaloriesByUserId(userId);
+        Integer totalDuration = userTrainingRecordMapper.sumDurationByUserId(userId);
         
         profile.put("totalWorkouts", totalWorkouts != null ? totalWorkouts : 0);
         profile.put("totalCalories", totalCalories != null ? totalCalories : 0);
@@ -57,37 +58,46 @@ public class UserProfileService {
     }
 
     public List<UserActivity> getUserActivities(Long userId, int limit) {
-        // 这里需要按时间倒序，但 Repository 方法没有限制数量的，用 Pageable 处理
-        return userActivityRepository.findAll().stream()
-                .filter(a -> a.getUserId().equals(userId))
-                .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
+        // 从 Mapper 获取全部活动，然后在内存中过滤、排序、限制
+        List<UserActivity> allActivities = userActivityMapper.selectAll();
+        return allActivities.stream()
+                .filter(a -> a.getUserId() != null && a.getUserId().equals(userId))
+                .sorted((a, b) -> {
+                    if (b.getCreatedAt() == null) return -1;
+                    if (a.getCreatedAt() == null) return 1;
+                    return b.getCreatedAt().compareTo(a.getCreatedAt());
+                })
                 .limit(limit)
                 .toList();
     }
 
     public Page<UserTrainingRecord> getUserTrainingRecords(Long userId, Pageable pageable) {
-        return userTrainingRecordRepository.findByUserIdOrderByCompletedAtDesc(userId, pageable);
+        int offset = (int) pageable.getOffset();
+        int size = pageable.getPageSize();
+        List<UserTrainingRecord> list = userTrainingRecordMapper.findByUserIdOrderByCompletedAtDesc(userId, offset, size);
+        long total = userTrainingRecordMapper.countByUserId(userId);
+        return new PageImpl<>(list, pageable, total);
     }
 
     public List<Map<String, Object>> getUserDailyStats(Long userId, int days) {
         LocalDateTime startTime = LocalDateTime.now().minusDays(days);
-        List<Object[]> stats = userTrainingRecordRepository.getDailyStatsByUserId(userId, startTime);
+        List<Map<String, Object>> stats = userTrainingRecordMapper.getDailyStatsByUserId(userId, startTime);
         
         return stats.stream().map(row -> {
             Map<String, Object> item = new HashMap<>();
-            item.put("date", row[0]);
-            item.put("count", row[1]);
-            item.put("duration", row[2]);
+            item.put("date", row.get("date"));
+            item.put("count", row.get("count"));
+            item.put("duration", row.get("duration"));
             return item;
         }).toList();
     }
 
     public List<Map<String, Object>> getUserFavoriteExercises(Long userId) {
-        List<Object[]> favorites = userTrainingRecordRepository.getFavoriteExercisesByUserId(userId);
+        List<Map<String, Object>> favorites = userTrainingRecordMapper.getFavoriteExercisesByUserId(userId);
         return favorites.stream().map(row -> {
             Map<String, Object> item = new HashMap<>();
-            item.put("exerciseId", row[0]);
-            item.put("count", row[1]);
+            item.put("exerciseId", row.get("exerciseId"));
+            item.put("count", row.get("count"));
             return item;
         }).toList();
     }

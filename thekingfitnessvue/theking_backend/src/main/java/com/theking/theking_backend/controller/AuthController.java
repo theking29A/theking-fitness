@@ -4,8 +4,8 @@ import com.theking.theking_backend.common.Result;
 import com.theking.theking_backend.dto.*;
 import com.theking.theking_backend.entity.User;
 import com.theking.theking_backend.entity.UserActivity;
-import com.theking.theking_backend.repository.UserActivityRepository;
-import com.theking.theking_backend.repository.UserRepository;
+import com.theking.theking_backend.mapper.UserActivityMapper;
+import com.theking.theking_backend.mapper.UserMapper;
 import com.theking.theking_backend.service.AuthService;
 import com.theking.theking_backend.util.CaptchaUtil;
 import com.theking.theking_backend.util.CodeStore;
@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -28,10 +29,10 @@ public class AuthController {
     private AuthService authService;
 
     @Autowired
-    private UserRepository userRepository;
+    private UserMapper userMapper;
 
     @Autowired
-    private UserActivityRepository userActivityRepository;
+    private UserActivityMapper userActivityMapper;
 
     // ========== 登录 ==========
     @PostMapping("/login")
@@ -40,13 +41,14 @@ public class AuthController {
 
         if (token != null) {
             // 查找用户并记录登录活动
-            User user = userRepository.findByAccount(request.getAccount()).orElse(null);
+            User user = userMapper.findByAccount(request.getAccount()).orElse(null);
             if (user != null) {
                 UserActivity activity = new UserActivity();
                 activity.setUserId(user.getId());
                 activity.setActivityType("LOGIN");
                 activity.setIpAddress(getClientIp(httpRequest));
-                userActivityRepository.save(activity);
+                activity.setCreatedAt(LocalDateTime.now());
+                userActivityMapper.insert(activity);
             }
 
             Map<String, Object> data = new HashMap<>();
@@ -69,7 +71,8 @@ public class AuthController {
         activity.setActivityType(activityType);
         activity.setTargetId(targetId);
         activity.setIpAddress(getClientIp(httpRequest));
-        userActivityRepository.save(activity);
+        activity.setCreatedAt(LocalDateTime.now());
+        userActivityMapper.insert(activity);
 
         return Result.success();
     }

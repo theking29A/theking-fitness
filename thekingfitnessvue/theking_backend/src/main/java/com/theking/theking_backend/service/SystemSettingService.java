@@ -1,38 +1,39 @@
 package com.theking.theking_backend.service;
 
 import com.theking.theking_backend.entity.SystemSetting;
-import com.theking.theking_backend.repository.SystemSettingRepository;
+import com.theking.theking_backend.mapper.SystemSettingMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
 public class SystemSettingService {
 
     @Autowired
-    private SystemSettingRepository systemSettingRepository;
+    private SystemSettingMapper systemSettingMapper;
 
     @Autowired
     private OperationLogService operationLogService;
 
     public List<SystemSetting> findAll() {
-        return systemSettingRepository.findAllByOrderByCategoryAscSettingKeyAsc();
+        return systemSettingMapper.findAllOrdered();
     }
 
     public List<SystemSetting> findByCategory(String category) {
-        return systemSettingRepository.findByCategoryOrderBySettingKeyAsc(category);
+        return systemSettingMapper.findByCategoryOrderBySettingKeyAsc(category);
     }
 
     public String getValue(String key) {
-        return systemSettingRepository.findBySettingKey(key)
+        return systemSettingMapper.findBySettingKey(key)
                 .map(SystemSetting::getSettingValue)
                 .orElse(null);
     }
 
     public String getValue(String key, String defaultValue) {
-        return systemSettingRepository.findBySettingKey(key)
+        return systemSettingMapper.findBySettingKey(key)
                 .map(SystemSetting::getSettingValue)
                 .orElse(defaultValue);
     }
@@ -67,14 +68,15 @@ public class SystemSettingService {
 
     @Transactional
     public SystemSetting updateValue(String key, String value, Long adminId, String adminAccount) {
-        SystemSetting setting = systemSettingRepository.findBySettingKey(key)
+        SystemSetting setting = systemSettingMapper.findBySettingKey(key)
                 .orElseThrow(() -> new RuntimeException("配置项不存在: " + key));
         String oldValue = setting.getSettingValue();
         setting.setSettingValue(value);
-        SystemSetting saved = systemSettingRepository.save(setting);
+        setting.setUpdatedAt(LocalDateTime.now());
+        systemSettingMapper.update(setting);
         operationLogService.log(adminId, adminAccount, "UPDATE", "SYSTEM",
                 key, "修改系统设置: " + key + " = " + value + " (原值: " + oldValue + ")");
-        return saved;
+        return setting;
     }
 
     @Transactional

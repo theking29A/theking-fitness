@@ -5,7 +5,7 @@ import com.theking.theking_backend.common.PageResult;
 import com.theking.theking_backend.dto.admin.AdminLoginRequest;
 import com.theking.theking_backend.entity.User;
 import com.theking.theking_backend.service.AdminService;
-import com.theking.theking_backend.repository.UserRepository;
+import com.theking.theking_backend.mapper.UserMapper;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -24,7 +24,7 @@ public class AdminController {
     private AdminService adminService;
 
     @Autowired
-    private UserRepository userRepository;
+    private UserMapper userMapper;
 
     @Autowired
     private OperationLogService operationLogService;
@@ -92,7 +92,7 @@ public class AdminController {
     public Result<User> userDetail(@RequestParam String token, @PathVariable Long id) {
         User admin = getAdmin(token);
         operationLogService.log(admin.getId(), admin.getAccount(), "QUERY", "USER", id.toString(), "查看用户详情");
-        return userRepository.findById(id)
+        return userMapper.findById(id)
                 .map(Result::success)
                 .orElse(Result.error(404, "用户不存在"));
     }

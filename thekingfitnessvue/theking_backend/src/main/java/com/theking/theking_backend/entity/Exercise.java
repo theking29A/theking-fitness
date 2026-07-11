@@ -1,71 +1,25 @@
 package com.theking.theking_backend.entity;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "exercises")
 public class Exercise {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(nullable = false)
     private String name;
-
-    @Column(columnDefinition = "TEXT")
     private String description;
-
-    @Column(nullable = false, length = 50)
-    private String category; // chest, back, legs, shoulders, arms, core, cardio
-
-    @Column(length = 255)
+    private String category;
     private String targetMuscles;
-
-    @Column(nullable = false, length = 20)
-    private String difficulty = "beginner"; // beginner, intermediate, advanced
-
-    @Column(length = 255)
+    private String difficulty;
     private String equipment;
-
-    @Column(length = 500)
     private String videoUrl;
-
-    @Column(length = 500)
     private String imageUrl;
-
-    @Column(columnDefinition = "TEXT")
     private String tips;
-
-    @Column(name = "calories_per_min")
-    private Integer caloriesPerMin = 0;
-
-    @Column(name = "duration_seconds")
-    private Integer durationSeconds = 60;
-
-    @Column(nullable = false)
-    private Integer status = 1; // 1: active, 0: inactive
-
-    @Column(name = "sort_order")
-    private Integer sortOrder = 0;
-
-    @Column(name = "created_at", updatable = false)
+    private Integer caloriesPerMin;
+    private Integer durationSeconds;
+    private Integer status;
+    private Integer sortOrder;
     private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 
     // Getters & Setters
     public Long getId() { return id; }

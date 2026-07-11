@@ -1,6 +1,6 @@
 package com.theking.theking_backend.service;
 
-import com.theking.theking_backend.repository.*;
+import com.theking.theking_backend.mapper.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,19 +13,19 @@ import java.util.*;
 public class DashboardService {
 
     @Autowired
-    private UserRepository userRepository;
+    private UserMapper userMapper;
 
     @Autowired
-    private ExerciseRepository exerciseRepository;
+    private ExerciseMapper exerciseMapper;
 
     @Autowired
-    private TrainingPlanRepository trainingPlanRepository;
+    private TrainingPlanMapper trainingPlanMapper;
 
     @Autowired
-    private UserActivityRepository userActivityRepository;
+    private UserActivityMapper userActivityMapper;
 
     @Autowired
-    private OperationLogRepository operationLogRepository;
+    private OperationLogMapper operationLogMapper;
 
     // ========== 核心统计 ==========
 
@@ -35,20 +35,20 @@ public class DashboardService {
         LocalDateTime weekStart = todayStart.minusDays(6);
         LocalDateTime monthStart = todayStart.minusDays(29);
 
-        stats.put("totalUsers", userRepository.count());
-        stats.put("totalExercises", exerciseRepository.countByStatus(1));
-        stats.put("totalPlans", trainingPlanRepository.countByStatus(1));
+        stats.put("totalUsers", userMapper.count());
+        stats.put("totalExercises", exerciseMapper.countByStatus(1));
+        stats.put("totalPlans", trainingPlanMapper.countByStatus(1));
         
         // 今日新增
-        long todayRegister = userRepository.countByCreatedAtGreaterThanEqual(todayStart);
+        long todayRegister = userMapper.countByCreatedAtGreaterThanEqual(todayStart);
         stats.put("todayRegister", todayRegister);
 
         // 周活跃
-        Long weekActive = userActivityRepository.countActiveUsersSince(weekStart);
+        Long weekActive = userActivityMapper.countActiveUsersSince(weekStart);
         stats.put("weekActiveUsers", weekActive != null ? weekActive : 0);
 
         // 月活跃
-        Long monthActive = userActivityRepository.countActiveUsersSince(monthStart);
+        Long monthActive = userActivityMapper.countActiveUsersSince(monthStart);
         stats.put("monthActiveUsers", monthActive != null ? monthActive : 0);
 
         return stats;
@@ -65,7 +65,7 @@ public class DashboardService {
             LocalDateTime dayStart = date.atStartOfDay();
             LocalDateTime dayEnd = date.plusDays(1).atStartOfDay();
             
-            long dailyNew = userRepository.countByCreatedAtBetween(dayStart, dayEnd);
+            long dailyNew = userMapper.countByCreatedAtBetween(dayStart, dayEnd);
             
             Map<String, Object> item = new HashMap<>();
             item.put("date", date.toString());
@@ -86,7 +86,7 @@ public class DashboardService {
             LocalDateTime dayStart = date.atStartOfDay();
             LocalDateTime dayEnd = date.plusDays(1).atStartOfDay();
             
-            Long dau = userActivityRepository.countDailyActiveUsers(dayStart, dayEnd);
+            Long dau = userActivityMapper.countDailyActiveUsers(dayStart, dayEnd);
             
             Map<String, Object> item = new HashMap<>();
             item.put("date", date.toString());
@@ -102,23 +102,23 @@ public class DashboardService {
         Map<String, Object> result = new HashMap<>();
         LocalDateTime weekAgo = LocalDateTime.now().minusDays(7);
         
-        List<Object[]> activityData = userActivityRepository.countByActivityTypeSince(weekAgo);
+        List<Map<String, Object>> activityData = userActivityMapper.countByActivityTypeSince(weekAgo);
         List<Map<String, Object>> activityList = new ArrayList<>();
-        for (Object[] row : activityData) {
+        for (Map<String, Object> row : activityData) {
             Map<String, Object> item = new HashMap<>();
-            item.put("type", row[0]);
-            item.put("count", row[1]);
+            item.put("type", row.get("type"));
+            item.put("count", row.get("count"));
             activityList.add(item);
         }
         result.put("activityTypes", activityList);
 
         // 操作日志类型分布
-        List<Object[]> logData = operationLogRepository.countByOperationTypeSince(weekAgo);
+        List<Map<String, Object>> logData = operationLogMapper.countByOperationTypeSince(weekAgo);
         List<Map<String, Object>> logList = new ArrayList<>();
-        for (Object[] row : logData) {
+        for (Map<String, Object> row : logData) {
             Map<String, Object> item = new HashMap<>();
-            item.put("type", row[0]);
-            item.put("count", row[1]);
+            item.put("type", row.get("type"));
+            item.put("count", row.get("count"));
             logList.add(item);
         }
         result.put("operationTypes", logList);
@@ -131,7 +131,7 @@ public class DashboardService {
     public Map<String, Object> getContentStats() {
         Map<String, Object> result = new HashMap<>();
         
-        List<Object[]> categoryData = exerciseRepository.countByCategory();
+        List<Object[]> categoryData = exerciseMapper.countByCategory();
         List<Map<String, Object>> categoryList = new ArrayList<>();
         for (Object[] row : categoryData) {
             Map<String, Object> item = new HashMap<>();
@@ -140,8 +140,8 @@ public class DashboardService {
             categoryList.add(item);
         }
         result.put("exercisesByCategory", categoryList);
-        result.put("totalExercises", exerciseRepository.countByStatus(1));
-        result.put("totalPlans", trainingPlanRepository.countByStatus(1));
+        result.put("totalExercises", exerciseMapper.countByStatus(1));
+        result.put("totalPlans", trainingPlanMapper.countByStatus(1));
         
         return result;
     }

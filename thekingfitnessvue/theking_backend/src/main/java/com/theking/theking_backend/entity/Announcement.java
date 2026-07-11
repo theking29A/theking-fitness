@@ -1,56 +1,20 @@
 package com.theking.theking_backend.entity;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "announcements")
 public class Announcement {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(nullable = false)
     private String title;
-
-    @Column(columnDefinition = "TEXT")
     private String content;
-
-    @Column(nullable = false, length = 20)
     private String type = "banner"; // banner, popup
-
-    @Column(nullable = false, length = 20)
     private String target = "all"; // all, user, admin
-
-    @Column(nullable = false)
     private Integer status = 1;
-
-    @Column(name = "sort_order")
     private Integer sortOrder = 0;
-
-    @Column(name = "start_time")
     private LocalDateTime startTime;
-
-    @Column(name = "end_time")
     private LocalDateTime endTime;
-
-    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 
     // Getters & Setters
     public Long getId() { return id; }

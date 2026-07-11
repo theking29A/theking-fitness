@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.theking.theking_backend.mapper.UserTrainingRecordMapper">
+
+    <select id="getDailyStatsByUserId" resultType="java.util.HashMap">
+        SELECT
+            DATE(completed_at) AS date,
+            COUNT(*) AS count,
+            COALESCE(SUM(duration_seconds), 0) AS duration
+        FROM user_training_records
+        WHERE user_id = #{userId}
+          AND completed_at &gt;= #{startTime}
+        GROUP BY DATE(completed_at)
+        ORDER BY DATE(completed_at) DESC
+    </select>
+
+    <select id="getFavoriteExercisesByUserId" resultType="java.util.HashMap">
+        SELECT
+            exercise_id AS exerciseId,
+            COUNT(*) AS count
+        FROM user_training_records
+        WHERE user_id = #{userId}
+        GROUP BY exercise_id
+        ORDER BY count DESC
+    </select>
+
+</mapper>

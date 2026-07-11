@@ -3,17 +3,12 @@ package com.theking.theking_backend.service;
 import com.theking.theking_backend.common.PageResult;
 import com.theking.theking_backend.common.Result;
 import com.theking.theking_backend.entity.User;
-import com.theking.theking_backend.repository.UserRepository;
+import com.theking.theking_backend.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -21,7 +16,7 @@ import java.util.Optional;
 public class AdminService {
 
     @Autowired
-    private UserRepository userRepository;
+    private UserMapper userMapper;
 
     @Autowired
     private org.springframework.data.redis.core.StringRedisTemplate redisTemplate;
@@ -39,14 +34,14 @@ public class AdminService {
         if (account == null) {
             return null;
         }
-        return userRepository.findByAccount(account).orElse(null);
+        return userMapper.findByAccount(account).orElse(null);
     }
 
     /**
      * 管理员登录：验证账号密码，且必须是 ADMIN 角色
      */
     public User login(String account, String password) {
-        Optional<User> userOpt = userRepository.findByAccount(account);
+        Optional<User> userOpt = userMapper.findByAccount(account);
         if (userOpt.isPresent()) {
             User user = userOpt.get();
             if (user.getPassword().equals(password) && user.getRole() == User.Role.ADMIN) {
@@ -60,9 +55,9 @@ public class AdminService {
      * 获取统计数据
      */
     public Map<String, Object> getStats() {
-        long totalUsers = userRepository.count();
-        long adminCount = userRepository.countByRole(User.Role.ADMIN);
-        long todayRegister = userRepository.countByCreatedAtGreaterThanEqual(
+        long totalUsers = userMapper.count();
+        long adminCount = userMapper.countByRole(User.Role.ADMIN);
+        long todayRegister = userMapper.countByCreatedAtGreaterThanEqual(
                 java.time.LocalDateTime.now().toLocalDate().atStartOfDay());
 
         Map<String, Object> stats = new HashMap<>();
@@ -77,14 +72,17 @@ public class AdminService {
      * 用户列表分页
      */
     public PageResult<User> getUserList(int page, int size, String keyword) {
-        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("id").descending());
-        Page<User> userPage;
+        int offset = (page - 1) * size;
+        List<User> users;
+        long total;
         if (keyword != null && !keyword.isEmpty()) {
-            userPage = userRepository.findByAccountContainingOrNicknameContaining(keyword, keyword, pageable);
+            users = userMapper.searchByKeyword(keyword, offset, size);
+            total = userMapper.countByKeyword(keyword);
         } else {
-            userPage = userRepository.findAll(pageable);
+            users = userMapper.findAllWithPagination(offset, size);
+            total = userMapper.count();
         }
-        return PageResult.success(userPage.getContent(), userPage.getTotalElements(), page, size);
+        return PageResult.success(users, total, page, size);
     }
 
     /**
@@ -93,7 +91,7 @@ public class AdminService {
      * 目前先实现一个占位，后续加 status 字段
      */
     public Result<Void> toggleUserStatus(Long id) {
-        Optional<User> userOpt = userRepository.findById(id);
+        Optional<User> userOpt = userMapper.findById(id);
         if (!userOpt.isPresent()) {
             return Result.error(404, "用户不存在");
         }

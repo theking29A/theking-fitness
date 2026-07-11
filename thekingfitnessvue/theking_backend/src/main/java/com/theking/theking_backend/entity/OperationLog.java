@@ -1,49 +1,20 @@
 package com.theking.theking_backend.entity;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "operation_logs")
 public class OperationLog {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(name = "admin_id", nullable = false)
     private Long adminId;
-
-    @Column(name = "admin_account", nullable = false)
     private String adminAccount;
-
-    @Column(name = "operation_type", nullable = false, length = 50)
     private String operationType; // CREATE, UPDATE, DELETE, LOGIN, LOGOUT, QUERY
-
-    @Column(name = "target_type", nullable = false, length = 50)
-    private String targetType; // USER, EXERCISE, PLAN, SYSTEM
-
-    @Column(name = "target_id", length = 100)
+    private String targetType;    // USER, EXERCISE, PLAN, SYSTEM
     private String targetId;
-
-    @Column(columnDefinition = "TEXT")
     private String detail;
-
-    @Column(name = "ip_address", length = 100)
     private String ipAddress;
-
-    @Column(name = "user_agent", length = 500)
     private String userAgent;
-
-    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
-
-    // Getters & Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

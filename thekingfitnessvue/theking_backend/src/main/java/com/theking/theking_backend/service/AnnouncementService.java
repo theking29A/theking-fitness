@@ -1,10 +1,9 @@
 package com.theking.theking_backend.service;
 
+import com.theking.theking_backend.common.PageResult;
 import com.theking.theking_backend.entity.Announcement;
-import com.theking.theking_backend.repository.AnnouncementRepository;
+import com.theking.theking_backend.mapper.AnnouncementMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,42 +15,51 @@ import java.util.Optional;
 public class AnnouncementService {
 
     @Autowired
-    private AnnouncementRepository announcementRepository;
+    private AnnouncementMapper announcementMapper;
 
     @Autowired
     private OperationLogService operationLogService;
 
-    public Page<Announcement> listAll(Pageable pageable) {
-        return announcementRepository.findAllByOrderBySortOrderAscCreatedAtDesc(pageable);
+    public PageResult<Announcement> listAll(int page, int size) {
+        int offset = (page - 1) * size;
+        List<Announcement> list = announcementMapper.findAllOrdered(offset, size);
+        long total = announcementMapper.countAll();
+        return PageResult.success(list, total, page, size);
     }
 
-    public Page<Announcement> listActive(Pageable pageable) {
-        return announcementRepository.findByStatusOrderBySortOrderAscCreatedAtDesc(1, pageable);
+    public PageResult<Announcement> listActive(int page, int size) {
+        int offset = (page - 1) * size;
+        List<Announcement> list = announcementMapper.findByStatusOrdered(1, offset, size);
+        long total = announcementMapper.countByStatus(1);
+        return PageResult.success(list, total, page, size);
     }
 
     public Optional<Announcement> getById(Long id) {
-        return announcementRepository.findById(id);
+        return announcementMapper.findById(id);
     }
 
     public List<Announcement> getActiveForUser() {
-        return announcementRepository.findActiveForUser(LocalDateTime.now());
+        return announcementMapper.findActiveForUser(LocalDateTime.now());
     }
 
     public List<Announcement> getActiveForAdmin() {
-        return announcementRepository.findActiveForAdmin(LocalDateTime.now());
+        return announcementMapper.findActiveForAdmin(LocalDateTime.now());
     }
 
     @Transactional
     public Announcement create(Announcement announcement, Long adminId, String adminAccount) {
         announcement.setStatus(1);
-        Announcement saved = announcementRepository.save(announcement);
-        operationLogService.log(adminId, adminAccount, "CREATE", "SYSTEM", saved.getId().toString(), "创建公告: " + saved.getTitle());
-        return saved;
+        LocalDateTime now = LocalDateTime.now();
+        announcement.setCreatedAt(now);
+        announcement.setUpdatedAt(now);
+        announcementMapper.insert(announcement);
+        operationLogService.log(adminId, adminAccount, "CREATE", "SYSTEM", announcement.getId().toString(), "创建公告: " + announcement.getTitle());
+        return announcement;
     }
 
     @Transactional
     public Announcement update(Long id, Announcement announcement, Long adminId, String adminAccount) {
-        Announcement existing = announcementRepository.findById(id)
+        Announcement existing = announcementMapper.findById(id)
                 .orElseThrow(() -> new RuntimeException("公告不存在"));
         existing.setTitle(announcement.getTitle());
         existing.setContent(announcement.getContent());
@@ -60,25 +68,27 @@ public class AnnouncementService {
         existing.setSortOrder(announcement.getSortOrder());
         existing.setStartTime(announcement.getStartTime());
         existing.setEndTime(announcement.getEndTime());
-        Announcement saved = announcementRepository.save(existing);
-        operationLogService.log(adminId, adminAccount, "UPDATE", "SYSTEM", saved.getId().toString(), "更新公告: " + saved.getTitle());
-        return saved;
+        existing.setUpdatedAt(LocalDateTime.now());
+        announcementMapper.update(existing);
+        operationLogService.log(adminId, adminAccount, "UPDATE", "SYSTEM", existing.getId().toString(), "更新公告: " + existing.getTitle());
+        return existing;
     }
 
     @Transactional
     public void delete(Long id, Long adminId, String adminAccount) {
-        Announcement announcement = announcementRepository.findById(id)
+        Announcement announcement = announcementMapper.findById(id)
                 .orElseThrow(() -> new RuntimeException("公告不存在"));
-        announcementRepository.delete(announcement);
+        announcementMapper.deleteById(id);
         operationLogService.log(adminId, adminAccount, "DELETE", "SYSTEM", id.toString(), "删除公告: " + announcement.getTitle());
     }
 
     @Transactional
     public void toggleStatus(Long id, Long adminId, String adminAccount) {
-        Announcement announcement = announcementRepository.findById(id)
+        Announcement announcement = announcementMapper.findById(id)
                 .orElseThrow(() -> new RuntimeException("公告不存在"));
         announcement.setStatus(announcement.getStatus() == 1 ? 0 : 1);
-        announcementRepository.save(announcement);
+        announcement.setUpdatedAt(LocalDateTime.now());
+        announcementMapper.update(announcement);
         String action = announcement.getStatus() == 1 ? "上架" : "下架";
         operationLogService.log(adminId, adminAccount, "UPDATE", "SYSTEM", id.toString(), action + "公告: " + announcement.getTitle());
     }
