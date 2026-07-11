@@ -1,7 +1,5 @@
 package com.theking.theking_backend.controller;
 
-import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
 import com.theking.theking_backend.common.Result;
 import com.theking.theking_backend.entity.Exercise;
 import com.theking.theking_backend.entity.PlanExercise;
@@ -42,14 +40,13 @@ public class CmsController {
     // ========== Exercise 健身动作 ==========
 
     @GetMapping("/exercises")
-    public Result<PageInfo<Exercise>> listExercises(
+    public Result<List<Exercise>> listExercises(
             @RequestParam String token,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         getAdmin(token);
-        PageHelper.startPage(page + 1, size);
         List<Exercise> list = cmsService.listAllExercises(page, size);
-        return Result.success(new PageInfo<>(list));
+        return Result.success(list);
     }
 
     @GetMapping("/exercises/{id}")
@@ -88,14 +85,13 @@ public class CmsController {
     // ========== Training Plan 训练计划 ==========
 
     @GetMapping("/plans")
-    public Result<PageInfo<TrainingPlan>> listPlans(
+    public Result<List<TrainingPlan>> listPlans(
             @RequestParam String token,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         getAdmin(token);
-        PageHelper.startPage(page + 1, size);
         List<TrainingPlan> list = cmsService.listAllPlans(page, size);
-        return Result.success(new PageInfo<>(list));
+        return Result.success(list);
     }
 
     @GetMapping("/plans/{id}")
