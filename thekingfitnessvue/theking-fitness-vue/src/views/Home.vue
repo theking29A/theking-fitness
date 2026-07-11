@@ -2532,4 +2532,22 @@ body.dark-theme .prediction-hint { color: #8e8e93; }
   color: #fff;
   font-size: 14px;
 }
+
+/* 修复：登录/弹窗内的输入框颜色 */
+.login-modal .form-group input,
+.login-modal .form-group input:focus {
+  background: #f5f5f7;
+  color: #1d1d1f;
+  border-color: #d2d2d7;
+}
+body.dark-theme .login-modal .form-group input,
+body.dark-theme .login-modal .form-group input:focus {
+  background: #2c2c2e;
+  color: #fff;
+  border-color: #38383a;
+}
+.login-modal .form-group input:focus {
+  border-color: #0071e3;
+  box-shadow: 0 0 0 4px rgba(0,113,227,0.1);
+}
 </style>
